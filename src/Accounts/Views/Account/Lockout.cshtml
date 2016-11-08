@@ -1,8 +1,12 @@
 ﻿@{
-    ViewData["Title"] = "Locked out";
+    ViewBag.Title = "Usuário bloqueado";
 }
 
-<header>
-    <h1 class="text-danger">Locked out.</h1>
-    <p class="text-danger">This account has been locked out, please try again later.</p>
-</header>
+<hgroup>
+    <h1 class="text-danger">@ViewBag.Title</h1>
+</hgroup>
+
+<p>
+    Este usuário foi bloqueado devido a multiplas tentativas mal sucedidas de autenticação. <br />
+    Utilize a função <a href="/Account/ForgotPassword">esquecí minha senha</a> para redefinir sua senha e desbloquear o usuário.
+</p>

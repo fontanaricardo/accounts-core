@@ -1,92 +1,81 @@
-﻿@using System.Collections.Generic
-@using Microsoft.AspNetCore.Http
-@using Microsoft.AspNetCore.Http.Authentication
-@model LoginViewModel
-@inject SignInManager<ApplicationUser> SignInManager
+﻿@using Accounts.Models
 
+@model Accounts.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Log in";
+    ViewBag.Title = "Entrar";
 }
 
-<h2>@ViewData["Title"].</h2>
+<h2>@ViewBag.Title.</h2>
 <div class="row">
     <div class="col-md-8">
-        <section>
-            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
-                <h4>Use a local account to log in.</h4>
+        <section id="loginForm">
+            <form asp-controller="Account" asp-action="Login" asp-route-ReturnUrl="@ViewBag.ReturnUrl" method="post" class="form-horizontal" role="form">
+            
+                @Html.AntiForgeryToken()
+                <h4>Utilize seu CPF para se autenticar.</h4>
                 <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                 <div class="form-group">
-                    <label asp-for="Email" class="col-md-2 control-label"></label>
+                    @Html.LabelFor(m => m.Username, new { @class = "col-md-2 control-label" })
                     <div class="col-md-10">
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+                        @Html.TextBoxFor(m => m.Username, new { @class = "form-control", @autocomplete = "off" })
+                        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Password" class="col-md-2 control-label"></label>
+                    @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
                     <div class="col-md-10">
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                        @Html.EditorFor(m => m.Password, "Password")
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
                         <div class="checkbox">
-                            <label asp-for="RememberMe">
-                                <input asp-for="RememberMe" />
-                                @Html.DisplayNameFor(m => m.RememberMe)
-                            </label>
+                            @Html.CheckBoxFor(m => m.RememberMe)
+                            @Html.LabelFor(m => m.RememberMe)
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-default">Log in</button>
+                        <input type="submit" value="Entrar" class="btn btn-primary" />
                     </div>
                 </div>
-                <p>
-                    <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Register as a new user?</a>
-                </p>
-                <p>
-                    <a asp-action="ForgotPassword">Forgot your password?</a>
-                </p>
+
             </form>
+
         </section>
     </div>
     <div class="col-md-4">
-        <section>
-            <h4>Use another service to log in.</h4>
+        <section id="socialLoginForm">
+
+			<h4>Não possui conta?</h4>
+			<hr />
+
+            <p>
+                <a href="https://www.joinville.sc.gov.br/servicos/cadastrar-usuario-em-autosservico/">Como cadastrar usuário em autosserviço</a>
+            </p>
+
+			<p>
+				@Html.ActionLink("Cadastro de pessoa física", "RegisterPerson")
+			</p>
+
+            <br />
+
+            <h4>Problemas com a senha?</h4>
             <hr />
-            @{
-                var loginProviders = SignInManager.GetExternalAuthenticationSchemes().ToList();
-                if (loginProviders.Count == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See <a href="http://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
-                            for details on setting up this ASP.NET application to support logging in via external services.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in loginProviders)
-                                {
-                                    <button type="submit" class="btn btn-default" name="provider" value="@provider.AuthenticationScheme" title="Log in using your @provider.DisplayName account">@provider.AuthenticationScheme</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
+
+			<p>
+				@Html.ActionLink("Esqueci minha senha", "ForgotPassword")
+			</p>
+            <p>
+                @Html.ActionLink("Confirmação do email", "SendEmailConfirmation")
+            </p>
+            
+            @*
+				@Html.Partial("_ExternalLoginsListPartial", new ExternalLoginListViewModel { ReturnUrl = ViewBag.ReturnUrl })
+			*@
         </section>
     </div>
 </div>
-
-@section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-}

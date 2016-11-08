@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Accounts.Models;
 
@@ -14,6 +10,14 @@ namespace Accounts.Data
             : base(options)
         {
         }
+
+        public DbSet<Person> People { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<Phone> Phones { get; set; }
+        public DbSet<AuthenticationToken> AuthenticationTokens { get; set; }
+        public DbSet<Application> Applications { get; set; }
+        public DbSet<Access> Accesses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

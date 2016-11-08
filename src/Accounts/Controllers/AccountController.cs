@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -9,8 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Accounts.Models;
-using Accounts.Models.AccountViewModels;
 using Accounts.Services;
+using Accounts.Data;
+using Accounts.Extensions;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Extensions.Options;
 
 namespace Accounts.Controllers
 {
@@ -19,31 +22,88 @@ namespace Accounts.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _dbContext;
         private readonly IEmailSender _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
+        private readonly IOptions<AppSettings> _appSettings;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            ApplicationDbContext dbContext,
             IEmailSender emailSender,
             ISmsSender smsSender,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IOptions<AppSettings> appSettings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _smsSender = smsSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
+            _dbContext = dbContext;
+            _appSettings = appSettings;
+        }
+        
+        [AllowAnonymous]
+        public IActionResult Entry(string returnUrl)
+        {
+            if (string.IsNullOrWhiteSpace(returnUrl))
+            {
+                return Redirect("/");
+            }
+
+            var value = string.IsNullOrWhiteSpace(returnUrl) ? Request.Headers["UrlReferrer"].ToString() : returnUrl;
+            Response.Cookies.Append("UrlReferer", value);
+            return RedirectToAction("Exit");
+        }
+
+        public IActionResult Exit()
+        {
+            var cookie = Request.Cookies["UrlReferer"];
+            string url;
+            Uri uri;
+
+            if (cookie == null)
+            {
+                return Redirect("/");
+            }
+            else
+            {
+                url = cookie.ToString();
+
+                // Não é possível excluir cookies do browser, apenas marcar como expirado
+                Response.Cookies.Delete("UrlReferer");
+            }
+
+            // Caso a URL de redirecionamento não seja válida, direciona o usuário para a home
+            if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
+            {
+                return Redirect("/");
+            }
+
+            AuthenticationToken token = new AuthenticationToken(User, uri);
+            _dbContext.AuthenticationTokens.Add(token);
+            _dbContext.SaveChanges();
+
+            UriBuilder uriBuilder = new UriBuilder(uri);
+            var newUri = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(uri.AbsoluteUri, "token", token.Token);
+            
+            return Redirect(newUri);
         }
 
         //
         // GET: /Account/Login
-        [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string returnUrl = null)
+        public IActionResult Login(string returnUrl)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            if (!Request.Cookies.ContainsKey("UrlReferer") && !string.IsNullOrWhiteSpace(returnUrl))
+            {
+                Response.Cookies.Append("UrlReferer", returnUrl);
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
@@ -51,38 +111,89 @@ namespace Accounts.Controllers
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            ViewData["ReturnUrl"] = returnUrl;
-            if (ModelState.IsValid)
+            // Tratativa para a exceção System.Web.Mvc.HttpAntiForgeryException, 
+            // gerada caso o usuário abra duas abas do navegador com o endereço "/Account/Login",
+            // efetue login numa das abas e posteriormente efetue login na outra aba
+            if (User.Identity.IsAuthenticated)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
+                TempData["success"] = string.Format("Usuário já autenticado como \"{0}\", utilize a opção \"Sair\" para trocar de usuário.", User.Identity.GetFullName());
+                return RedirectToLocal("/");
+            }
+
+            // TODO: Verificar como executar esta validação no dotnet core
+            //System.Web.Helpers.AntiForgery.Validate();
+            
+            model.Username = new String(model.Username.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+
+            if (model.Username.Length < 12)
+            {
+                model.Username = model.Username.PadLeft(11, '0');
+            }
+            else
+            {
+                model.Username = model.Username.PadLeft(14, '0');
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByNameAsync(model.Username);
+            
+            if (user != null)
+            {
+                if (!user.EmailConfirmed)
                 {
-                    _logger.LogInformation(1, "User logged in.");
-                    return RedirectToLocal(returnUrl);
+                    TempData["error"] = "Seu cadastro ainda não foi confirmado. Verifique sua caixa de e-mail e spam ou <a href='/Account/SendEmailConfirmation'>clique aqui</a> para reenvio do e-mail de confirmação.";
+                    return View(model);
                 }
-                if (result.RequiresTwoFactor)
+
+                UpdateEletronicSignature(model, _appSettings.Value);
+            }
+            else
+            {
+                ModelState.AddModelError("", "Usuário não cadastrado.");
+                return View(model);
+            }
+            
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, true);
+            
+            if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
+            {
+
+                await _userManager.AddClaimAsync(user, new Claim("FullUserName", user.FullUserName));
+                await _userManager.AddClaimAsync(user, new Claim("EletronicSignatureStatus", user.EletronicSignatureStatus.ToString()));
+
+                if (Request.Cookies.ContainsKey("UrlReferer"))
                 {
-                    return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                    return RedirectToLocal("/Account/Exit");
                 }
-                if (result.IsLockedOut)
+                else if (string.IsNullOrWhiteSpace(returnUrl))
                 {
-                    _logger.LogWarning(2, "User account locked out.");
-                    return View("Lockout");
+                    return RedirectToLocal("/");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
+                    Response.Cookies.Append("UrlReferer", returnUrl);
+                    return RedirectToAction("Exit");
                 }
             }
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            else if (result == Microsoft.AspNetCore.Identity.SignInResult.LockedOut)
+            {
+                return View("Lockout");
+            }
+            else if (result == Microsoft.AspNetCore.Identity.SignInResult.TwoFactorRequired)
+            {
+                return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+            }
+            else
+            {
+                ModelState.AddModelError("", "Falha ao autenticar, verifique seu usuário e senha.");
+                return View(model);
+            }
         }
 
         //
@@ -100,7 +211,7 @@ namespace Accounts.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Register(Models.AccountViewModels.RegisterViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
@@ -132,9 +243,11 @@ namespace Accounts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
         {
+            var user = GetCurrentUserAsync().Result;
+            await _userManager.RemoveClaimsAsync(user, User.Claims);
             await _signInManager.SignOutAsync();
             _logger.LogInformation(4, "User logged out.");
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return RedirectToAction("Login", "Account");
         }
 
         //
@@ -188,7 +301,7 @@ namespace Accounts.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 ViewData["LoginProvider"] = info.LoginProvider;
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = email });
+                return View("ExternalLoginConfirmation", new Models.AccountViewModels.ExternalLoginConfirmationViewModel { Email = email });
             }
         }
 
@@ -197,7 +310,7 @@ namespace Accounts.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnUrl = null)
+        public async Task<IActionResult> ExternalLoginConfirmation(Models.AccountViewModels.ExternalLoginConfirmationViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -262,23 +375,20 @@ namespace Accounts.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                var user = await _userManager.FindByNameAsync(model.CPF);
+                if (user == null || user.Email != model.Email)
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    TempData["error"] = "Dados incorretos! Confira os dados de acesso.";
+                    return View(model);
                 }
-
-                // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
-                // Send an email with this link
-                //var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                //var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                //await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                //   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
-                //return View("ForgotPasswordConfirmation");
+                
+                string code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
+                await _emailSender.SendEmailAsync(user.Email, "Prefeitura de Joinville - Redefinir senha",
+                $"Prefeitura de Joinville\n\nAcesse a URL abaixo para Redefinir senha: {callbackUrl}");
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
-            // If we got this far, something failed, redisplay form
             return View(model);
         }
 
@@ -307,22 +417,35 @@ namespace Accounts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            model.Document = new String(model.Document.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var user = await _userManager.FindByNameAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
+
+            var person = _dbContext.People.Single(p => p.CPF == user.UserName);
+
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
-                return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
+                if (_userManager.IsLockedOutAsync(user).Result)
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
+                }
+
+                person.ChangePasswordSei(model.Password, _appSettings.Value, true);
+
+                return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
-            AddErrors(result);
+
+            AddLocalizedErrors(result, user);
             return View();
         }
 
@@ -348,7 +471,7 @@ namespace Accounts.Controllers
             }
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
-            return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
+            return View(new Models.AccountViewModels.SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         //
@@ -356,7 +479,7 @@ namespace Accounts.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendCode(SendCodeViewModel model)
+        public async Task<IActionResult> SendCode(Models.AccountViewModels.SendCodeViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -401,7 +524,7 @@ namespace Accounts.Controllers
             {
                 return View("Error");
             }
-            return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
+            return View(new Models.AccountViewModels.VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         //
@@ -409,7 +532,7 @@ namespace Accounts.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyCode(VerifyCodeViewModel model)
+        public async Task<IActionResult> VerifyCode(Models.AccountViewModels.VerifyCodeViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -436,7 +559,249 @@ namespace Accounts.Controllers
             }
         }
 
+
+        //
+        // GET: /Account/RegisterPerson
+        [AllowAnonymous]
+        public ActionResult RegisterPerson()
+        {
+            string[] phoneNumbers = { "" };
+            ViewBag.Phones = phoneNumbers;
+            return View();
+        }
+
+        //
+        // POST: /Account/RegisterPerson
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterPerson(RegisterPersonViewModel model)
+        {
+            List<Phone> phones = new List<Phone>();
+            string[] phoneNumbers = Request.Form["Phone"].Distinct().ToArray();
+            ViewBag.Phones = phoneNumbers;
+
+            ModelState.Clear();
+            model.Person.Email = model.Email;
+            TryValidateModel(model);
+
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                foreach (string number in phoneNumbers)
+                {
+                    Phone phone = new Phone()
+                    {
+                        Number = number,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        Document = model.Person.CPF
+                    };
+
+                    if (!TryValidateModel(phone))
+                    {
+                        throw new ArgumentException("Número de telefone " + number + " inválido, utilize o formato (xx) xxxxxxxx, nono dígito opcional.");
+                    }
+
+                    phones.Add(phone);
+                }
+
+                if (ModelState.IsValid)
+                {
+                    // Cria o usuário da aplicação
+                    var user = new ApplicationUser
+                    {
+                        UserName = model.Person.CPF.ToString(),
+                        Email = model.Person.Email,
+                        FullUserName = model.Person.Name,
+                        EletronicSignatureStatus = model.Person.EletronicSignatureStatus,
+                        EmailConfirmed = false
+                    };
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        _dbContext.People.Add(model.Person);
+                        _dbContext.SaveChanges();
+
+                        _dbContext.Phones.AddRange(phones);
+                        _dbContext.SaveChanges();
+
+                        await EmailConfirmation(user);
+
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("Cadastro realizado com sucesso.<br/>");
+                        sb.Append("Foi lhe enviado um e-mail para confirmação do cadastro.<br/>");
+                        sb.Append("Caso não tenha recebido o e-mail, verifique sua caixa de spam ou <a href='/Account/SendEmailConfirmation'>clique aqui</a> para reenvio do e-mail de confirmação.<br/>");
+
+                        TempData["success"] = sb.ToString();
+
+                        return RedirectToAction("Login", "Account");
+                    }
+                    AddLocalizedErrors(result, user);
+                }
+
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return View(model);
+        }
+        
+        //
+        // GET: /Account/RegisterCompany
+        [AllowAnonymous]
+        public ActionResult RegisterCompany()
+        {
+            string[] phoneNumbers = { "" };
+            ViewBag.Phones = phoneNumbers;
+            return View();
+        }
+
+        //
+        // POST: /Account/RegisterCompany
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterCompany(RegisterCompanyViewModel model)
+        {
+            List<Phone> phones = new List<Phone>();
+            string[] phoneNumbers = Request.Form["Phone"].Distinct().ToArray();
+            ViewBag.Phones = phoneNumbers;
+
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                foreach (string number in phoneNumbers)
+                {
+                    Phone phone = new Phone()
+                    {
+                        Number = number,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        Document = model.Company.CNPJ
+                    };
+
+                    if (!TryValidateModel(phone))
+                    {
+                        throw new ArgumentException("Phone number " + number + " is invalid");
+                    }
+
+                    phones.Add(phone);
+                }
+
+                if (ModelState.IsValid)
+                {
+                    var user = new ApplicationUser
+                    {
+                        UserName = model.Company.CNPJ.ToString(),
+                        Email = model.Company.Email
+                    };
+
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        _dbContext.Companies.Add(model.Company);
+                        _dbContext.SaveChanges();
+
+                        _dbContext.Phones.AddRange(phones);
+                        _dbContext.SaveChanges();
+
+                        await EmailConfirmation(user);
+
+                        return RedirectToAction("Login", "Account");
+                    }
+                    AddLocalizedErrors(result, user);
+                }
+
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return View(model);
+        }
+
+        private async Task EmailConfirmation(ApplicationUser user)
+        {
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callbackUrl = Url.Action(
+               "ConfirmEmail", "Account",
+               new { userId = user.Id, code = code },
+               protocol: Request.Scheme);
+
+            string operation = "Confirmação do e-mail";
+            
+            await _emailSender.SendEmailAsync(user.Email, "Prefeitura de Joinville - " + operation,
+                $"Prefeitura de Joinville\n\nAcesse a URL abaixo para {operation}: {callbackUrl}");
+
+        }
+        
+        [AllowAnonymous]
+        public async Task<ActionResult> SendEmailConfirmation()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SendEmailConfirmation(ConfirmationEmailViewModel model)
+        {
+            model.CPF = new String(model.CPF.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+            
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(model.CPF);
+
+                if (user == null)
+                {
+                    TempData["error"] = "Dados incorretos. Confira os dados de acesso.";
+                }
+                else
+                {
+                    if (user.Email != model.Email)
+                    {
+                        TempData["error"] = "Dados incorretos. Confira os dados de acesso.";
+                    }
+                    else if (user.EmailConfirmed)
+                    {
+                        TempData["success"] = "O email " + model.Email + " já foi confirmado.";
+                        return Redirect("/");
+                    }
+                    else
+                    {
+                      await EmailConfirmation(user);
+                        TempData["success"] = "Email de confirmação enviado para " + model.Email;
+                        return Redirect("/");
+                    }
+                }
+            }
+
+
+            return View(model);
+        }
+
         #region Helpers
+
+        //TODO: Implementar método para pessoa jurídica
+        private void UpdateEletronicSignature(Models.LoginViewModel model, AppSettings appSettings)
+        {
+            var person = _dbContext.People.SingleOrDefault(p => p.CPF == model.Username);
+
+            if (person == null) return;
+
+            person.UpdateEletronicSignatureStatus(appSettings);
+            var user = _userManager.FindByNameAsync(model.Username).Result;
+            user.EletronicSignatureStatus = person.EletronicSignatureStatus;
+            User.AddUpdateClaim("EletronicSignatureStatus", person.EletronicSignatureStatus.ToString());
+            var updateResult = _userManager.UpdateAsync(user).Result;
+            _dbContext.SaveChanges();
+        }
 
         private void AddErrors(IdentityResult result)
         {
@@ -459,9 +824,40 @@ namespace Accounts.Controllers
             }
             else
             {
-                return RedirectToAction(nameof(HomeController.Index), "Home");
+                return Redirect("/");
             }
         }
+        
+        private void AddLocalizedErrors(IdentityResult result, ApplicationUser user)
+        {
+            foreach (var error in result.Errors)
+            {
+                var localizedError = error.Description;
+                string userName = "";
+                string email = "";
+                if (user != null)
+                {
+                    userName = user.UserName;
+                    email = user.Email;
+                }
+                //password errors
+                localizedError = localizedError.Replace("Captcha answer cannot be empty.", "Captcha não pode ficar em branco.");
+                localizedError = localizedError.Replace("Incorrect captcha answer.", "Captcha incorreto.");
+                localizedError = localizedError.Replace("Incorrect password.", "Senha incorreta.");
+                localizedError = localizedError.Replace("Your password has been changed.", "Senha incorreta.");
+                localizedError = localizedError.Replace("Passwords must have at least one lowercase ('a'-'z').", "A senha deve ter pelo menos uma letra minúscula.");
+                localizedError = localizedError.Replace("Passwords must have at least one uppercase ('A'-'Z').", "A senha deve ter pelo menos uma letra maiúscula.");
+                localizedError = localizedError.Replace("Passwords must have at least one digit ('0'-'9').", "A senha deve ter pelo menos um dígito.");
+                localizedError = localizedError.Replace("Phone number is invalid.", "Número de telefone inválido.");
+
+                //register errors
+                localizedError = localizedError.Replace("Name " + userName + " is already taken.", "Usuário {0} já está registrado.".Replace("{0}", userName));
+                localizedError = localizedError.Replace("Email '" + email + "' is already taken.", "E-mail {0} já está registrado.".Replace("{0}", email));
+
+                ModelState.AddModelError("", localizedError);
+            }
+        }
+
 
         #endregion
     }

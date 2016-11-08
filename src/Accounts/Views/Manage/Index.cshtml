@@ -1,71 +1,114 @@
-﻿@model IndexViewModel
+﻿@model Accounts.Models.ManageViewModels.IndexViewModel
+
 @{
-    ViewData["Title"] = "Manage your account";
+    ViewBag.Title = "Minha conta";
 }
 
-<h2>@ViewData["Title"].</h2>
-<p class="text-success">@ViewData["StatusMessage"]</p>
+<p class="text-success">@ViewBag.StatusMessage</p>
 
-<div>
-    <h4>Change your account settings</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>Password:</dt>
-        <dd>
+<div class="col-md-4">
+    <section>
+
+        <h4>Altere as definições da sua conta</h4>
+        
+        <hr>
+
+        <p>
             @if (Model.HasPassword)
             {
-                <a asp-controller="Manage" asp-action="ChangePassword" class="btn-bracketed">Change</a>
+                @Html.ActionLink("Alterar senha", "ChangePassword")
             }
             else
             {
-                <a asp-controller="Manage" asp-action="SetPassword" class="btn-bracketed">Create</a>
+                @Html.ActionLink("Definir senha", "SetPassword")
             }
-        </dd>
-        <dt>External Logins:</dt>
-        <dd>
+        </p>
 
-            @Model.Logins.Count <a asp-controller="Manage" asp-action="ManageLogins" class="btn-bracketed">Manage</a>
-        </dd>
-        <dt>Phone Number:</dt>
-        <dd>
-            <p>
-                Phone Numbers can used as a second factor of verification in two-factor authentication.
-                See <a href="http://go.microsoft.com/fwlink/?LinkID=532713">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
-            </p>
-            @*@(Model.PhoneNumber ?? "None")
-                @if (Model.PhoneNumber != null)
-                {
-                    <br />
-                    <a asp-controller="Manage" asp-action="AddPhoneNumber" class="btn-bracketed">Change</a>
-                    <form asp-controller="Manage" asp-action="RemovePhoneNumber" method="post">
-                        [<button type="submit" class="btn-link">Remove</button>]
-                    </form>
-                }
-                else
-                {
-                    <a asp-controller="Manage" asp-action="AddPhoneNumber" class="btn-bracketed">Add</a>
-                }*@
-        </dd>
+        <p>
+            @Html.ActionLink("Alterar email", "ChangeEmail")
+        </p>
 
-        <dt>Two-Factor Authentication:</dt>
-        <dd>
+        <p>
+            @if (User.Identity.Name.Length > 11)
+            {
+                @Html.ActionLink("Editar meu cadastro", "Edit", "Companies")
+            }
+            else
+            {
+                @Html.ActionLink("Editar meu cadastro", "Edit", "People")
+            }
+        </p>
+
+        <p>
+            @Html.ActionLink("Editar meu endereço", "Edit", "Addresses")
+        </p>
+
+        <p>
+            @Html.ActionLink("Editar meus telefones de contato", "Index", "Phones")
+        </p>
+
+        @*
+            TODO: Utilizar parâmetro como URL do virtual
+        *@
+
+        <p>
+            <a href="http://virtual.pmjlle.joinville.sc.gov.br/Polis/Processo/Index">Meus processos </a>
+        </p>
+
+        <br />
+
+    </section>
+</div>
+
+<div class="col-md-4">
+    <section>
+
+        <h4>Certificação</h4>
+
+        <hr>
+
+        <p style="display: none;" id="certLink">
+            @Html.ActionLink("Certificação do usuário", "EletronicSignature", "Manage")
+        </p>
+        
+        <p style="display: none;" id="addDocLink">
+            @Html.ActionLink("Adicionar documento ao processo de certificação", "AddDocument", "Certification")
+        </p>
+        
+        @if (!string.IsNullOrWhiteSpace(Model.LinkSeiProtocol))
+        {
             <p>
-                There are no two-factor authentication providers configured. See <a href="http://go.microsoft.com/fwlink/?LinkID=532713">this article</a>
-                for setting up this application to support two-factor authentication.
+                <a target="_blank" href="@Model.LinkSeiProtocol">
+                    Consultar processo de certificação
+                </a>
             </p>
-            @*@if (Model.TwoFactor)
-                {
-                    <form asp-controller="Manage" asp-action="DisableTwoFactorAuthentication" method="post" class="form-horizontal">
-                        Enabled <button type="submit" class="btn-link btn-bracketed">Disable</button>
-                    </form>
-                }
-                else
-                {
-                    <form asp-controller="Manage" asp-action="EnableTwoFactorAuthentication" method="post" class="form-horizontal">
-                        <button type="submit" class="btn-link btn-bracketed">Enable</button> Disabled
-                    </form>
-                }*@
-        </dd>
-    </dl>
+        }
+
+        <br />
+
+    </section>
+</div>
+
+<div class="col-md-4">
+    <section>
+
+        <h4>Legislação</h4>
+
+        <hr>
+
+        <p>
+            <a target="_blank" href="@(ViewBag.Decree)">
+                Decreto municipal 27.082/2016
+            </a>
+        </p>
+        
+        <p>
+            <a target="_blank" href="@(ViewBag.Instruction)">
+                Instrução normativa SEI Nº 06/2016
+            </a>
+        </p>
+
+        <br />
+
+    </section>
 </div>

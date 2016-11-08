@@ -1,0 +1,14 @@
+﻿@model System.Web.Mvc.HandleErrorInfo
+
+@{
+    ViewBag.Title = "Usuário bloqueado";
+}
+
+<hgroup>
+    <h1 class="text-danger">@ViewBag.Title</h1>
+</hgroup>
+
+<p> class="text-danger">
+	Este usuário foi bloqueado devido a multiplas tentativas mal sucedidas de autenticação. <br />
+	Utilize a função <a href="/Account/ForgotPassword" >esquecí minha senha</a> para redefinir sua senha e desbloquear o usuário.
+</p>

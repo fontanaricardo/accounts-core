@@ -1,0 +1,81 @@
+﻿@model Accounts.Models.AddDocumentViewModel
+
+@{
+    ViewBag.Title = "Adicionar documento";
+}
+
+<h2>@(ViewBag.Title)</h2>
+
+<h4>
+    Adicione documentos ao processo de certificação digital.
+</h4>
+
+<hr />
+
+<fieldset>
+
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary("", new { @class = "text-danger", @id = "validationSummary" })
+
+        <p>
+            Permitidos apenas arquivos do tipo PDF com tamanho máximo de 1 Mb.
+        </p>
+
+        <div class="form-horizontal">
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="Term">Documento</label>
+                @Html.TextBoxFor(m => m.Document, new { type = "file" })
+            </div>
+
+            <hr />
+            
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <a href="/Manage" class="btn btn-default">Voltar</a>
+                    <input type="submit" id="submitButton" value="Adicionar arquivo" class="btn btn-primary" />
+                </div>
+            </div>
+
+        </div>
+    }
+
+</fieldset>
+
+@section Scripts{
+
+    <script type="text/javascript">
+
+        // Tamanho máximo 1 Mb
+        var maxSize = 1 * 1024 * 1024;
+
+        var docSize = 0;
+
+        $(document).ready(function () {
+
+            $("input[type=file]").bind('change', function () {
+                
+                docSize = this.files[0].size;
+
+                toggleMessage('validationSummary', 'O arquivo "Documento" possui tamanho superior a 1 Mb.', (docSize > maxSize));
+
+                toggleSubmit();
+
+            });
+        });
+
+        function toggleSubmit() {
+
+            maxSizeExceeded = docSize > maxSize;
+
+            $("#submitButton").prop('disabled', maxSizeExceeded);
+
+        }
+
+    </script>
+
+}

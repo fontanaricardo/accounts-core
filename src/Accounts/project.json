@@ -1,4 +1,4 @@
-﻿{
+{
   "userSecretsId": "aspnet-Accounts-6d9c5945-d01f-436b-a1ed-e5813f5c6db7",
 
   "dependencies": {
@@ -42,7 +42,10 @@
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
       "version": "1.0.0-preview2-final",
       "type": "build"
-    }
+    },
+    "Microsoft.AspNetCore.Session": "1.0.0",
+    "Microsoft.Framework.Caching.Memory": "1.0.0-beta7",
+    "MailKit": "1.10.0"
   },
 
   "tools": {

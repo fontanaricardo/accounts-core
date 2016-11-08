@@ -1,0 +1,113 @@
+﻿@model Accounts.Models.Person
+
+@{
+    ViewBag.Title = "Termo de Responsabilidade - Usuário Externo";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@(ViewBag.Title)</title>
+
+    <style>
+
+        * {
+            background:transparent !important;
+            color:#000 !important;
+            text-shadow:none !important;
+            filter:none !important;
+            -ms-filter:none !important;
+        }
+ 
+        body {
+            margin:0 auto;
+            padding:0;
+            text-align: justify;
+            display: block;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            color: #000;
+            width: 800px;
+        }
+
+        h1 {
+            font-size: 12pt;
+            text-align: center;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <img src="~/images/header.jpg">
+
+    <h1>@(ViewBag.Title)</h1>
+
+    <p>
+        Eu, <span>@(Model.Name)</span>, CPF: <span>@(Model.CPF)</span>, Identidade: <span>@(Model.RG)</span>, declaro haver solicitado a certificação usuário externo SEI, sendo de minha responsabilidade o sigilo da senha relativa ao cadastro de usuário externo, não sendo oponível, em qualquer hipótese, alegação de uso indevido;
+    </p>
+
+    <p>
+        Declaro que as informações ora prestadas são verdadeiras, sob pena de responsabilidade administrativa, civil e penal. Especialmente conforme art. 299 do Código Penal Brasileiro*. 
+    </p>
+
+    <p>
+        *Falsidade ideológica
+    </p>
+
+    <p>
+        Art. 299 - Omitir, em documento público ou particular, declaração que dele devia constar, ou nele inserir ou fazer inserir declaração falsa ou diversa da que devia ser escrita, com o fim de prejudicar direito, criar obrigação ou alterar a verdade sobre fato juridicamente relevante: 
+    </p>
+
+    <p>
+        Pena - reclusão, de um a cinco anos, e multa, se o documento é público, e reclusão de um a três anos, e multa, se o documento é particular.
+    </p>
+
+    <p>
+        Declaro ainda estar plenamente esclarecido e consciente que: 
+    </p>
+
+    <ul>
+        <li>
+            A Secretaria de Administração e Planejamento, órgão gestor do SEI, poderá solicitar documentação complementar para certificação do usuário.
+        </li>
+        <li>
+            O resultado da análise da documentação será informado ao usuário por meio eletrônico, após o recebimento deste Termo de Responsabilidade devidamente assinado.
+        </li>
+        <li>
+            A não obtenção de acesso ou certificação como usuário externo no SEI bem como eventual defeito de transmissão ou recepção de dados e informações, não imputáveis à falha do SEI, não servirão de escusa para o descumprimento de obrigações e prazos legais.
+        </li>
+        <li>
+            Serei responsável pela autenticidade de qualquer documento enviado ou informação prestada eletronicamente por meu usuário.
+        </li>
+    </ul>
+
+    <p style="text-align: right;">
+        Joinville, _______de ____________ de 20___
+    </p>
+
+    <br />
+
+    <p style="text-align: center;">
+        ________________________________________<br />
+        @(Model.Name)<br />
+        CPF @(Model.CPF)<br />
+    </p>
+
+    <br />
+
+    <p style="text-align: right; font-size: 8px;">
+        Data e hora da impressão: @(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"))
+    </p>
+
+    <img src="~/content/images/footer.jpg">
+
+</body>
+
+</html>

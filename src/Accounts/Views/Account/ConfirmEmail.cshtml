@@ -1,10 +1,10 @@
 ﻿@{
-    ViewData["Title"] = "Confirm Email";
+    ViewBag.Title = "Confirme o seu e-mail";
 }
 
-<h2>@ViewData["Title"].</h2>
+<h2>@ViewBag.Title.</h2>
 <div>
     <p>
-        Thank you for confirming your email. Please <a asp-controller="Account" asp-action="Login">Click here to Log in</a>.
+        Obrigado por confirmar o seu e-mail, @Html.ActionLink("clique aqui para efetuar o login.", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
     </p>
 </div>

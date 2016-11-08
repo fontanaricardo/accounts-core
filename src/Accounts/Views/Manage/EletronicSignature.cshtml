@@ -1,0 +1,142 @@
+﻿@model Accounts.Models.EletronicSignatureViewModel
+
+@{
+    ViewBag.Title = "Certificação de usuário";
+}
+
+<h2>@(ViewBag.Title)</h2>
+
+<h4>Envie os documentos e o termo de aceite para solicitar a geração da certificação de usuário.</h4>
+
+<hr />
+
+<fieldset>
+
+    <legend>
+        Procedimentos
+    </legend>
+
+    <ol>
+        <li>
+            Para gerar a certificação de usuário primeiro você deve imprimir, assinar e digitalizar o termo de responsabilidade. <br>
+            O termo de responsabilidade será gerado com base nos dados informados no seu cadastro. <br>
+            Para atualizar o cadastro utilize o menu <a href="/Manage/Index">minha conta</a>. <br>
+            <a class="btn btn-primary" target="_blank" href="/Manage/Term">Gerar termo de responsabilidade</a>
+            <br>
+        </li>
+
+        <li>
+            Digitalize um documento com foto.
+        </li>
+
+        <li>
+            Faça o upload dos documentos digitalizados.
+        </li>
+    </ol>
+
+</fieldset>
+
+<fieldset>
+
+    <legend>
+        Autuar processo
+    </legend>
+
+    @using (Html.BeginForm(null, null, FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary("", new { @class = "text-danger", @id = "validationSummary" })
+
+        <p>
+            Permitidos apenas arquivos do tipo PDF com tamanho máximo de 1 Mb.
+        </p>
+
+        <div class="form-horizontal">
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="Term">Termo</label>
+                @Html.TextBoxFor(m => m.Term, new { type = "file" })
+                <p class="help-block">
+                    Termo de responsabilidade assinado.
+                </p>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <p> 
+                        A assinatura do Termo de Responsabilidade deve ser compatível com a assinatura do documento pessoal de identificação, incluso. Em consonância com a Instrução Normativa SEI Nº 06/2016 da Secretaria de Administração e Planejamento, Art.9º, § 3º.
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-2" for="Document">Documento</label>
+                @Html.TextBoxFor(m => m.Document, new { type = "file" })
+                <p class="help-block">Documento com foto e assinatura compatível com o termo de responsabilidade.</p>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
+                @Html.EditorFor(m => m.Password, "Password")
+                <div class="col-md-offset-2 col-md-10">
+                    <p class="help-block">Confirme sua senha. A senha deve ser a mesma informada no cadastro da conta.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    @Html.CheckBoxFor(m => m.Agree)
+                    Declaro que as informações ora prestadas são verdadeiras, sob pena de responsabilidade administrativa, civil e penal. Especialmente conforme art. 299 do 
+                    <a href="http://www.planalto.gov.br/ccivil_03/decreto-lei/Del2848compilado.htm" target="_blank" >
+                    Código Penal Brasileiro.
+                    </a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input id="submitButton" type="submit" value="Autuar processo" class="btn btn-primary" />
+                </div>
+            </div>
+
+        </div>
+    }
+
+</fieldset>
+
+@section scripts {
+
+    <script type="text/javascript">
+
+        var termSize = 0;
+        var docSize = 0;
+
+        // Tamanho máximo 1 Mb
+        var maxSize = 1 * 1024 * 1024;
+
+        $(document).ready(function () {
+
+            $("input[name='Term']").bind('change', function () {
+                termSize = this.files[0].size;
+                toggleMessage('validationSummary', 'O arquivo "Termo de aceite" possui tamanho superior a 1 Mb.', (termSize > maxSize));
+                toggleSubmit();
+            });
+
+            $("input[name='Document']").bind('change', function () {
+                docSize = this.files[0].size;
+                toggleMessage('validationSummary', 'O arquivo "Documento com foto" possui tamanho superior a 1 Mb.', (docSize > maxSize));
+                toggleSubmit();
+            });
+
+        });
+
+        function toggleSubmit() {
+
+            maxSizeExceeded = (termSize > maxSize || docSize > maxSize);
+
+            $("#submitButton").prop('disabled', maxSizeExceeded);
+
+        }
+
+    </script>
+}

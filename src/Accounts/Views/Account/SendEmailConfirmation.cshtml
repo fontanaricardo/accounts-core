@@ -1,0 +1,40 @@
+﻿@model Accounts.Models.ConfirmationEmailViewModel
+
+@{
+    ViewBag.Title = "Enviar e-mail para confirmação da conta";
+}
+
+<h2>@(ViewBag.Title)</h2>
+
+@using (Html.BeginForm("SendEmailConfirmation", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+    <hr />
+    @Html.ValidationSummary("", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.LabelFor(m => m.CPF, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.CPF, new { @class = "form-control cpf" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Email, new { @class = "col-md-2 control-label" })
+        <div class="col-md-10">
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <div class="g-recaptcha" data-sitekey="6Le_cR4TAAAAAJp9DhZotxc-pcOsPceDDKQp33YR"></div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <a href="/" class="btn btn-default">Voltar</a>
+            <input type="submit" class="btn btn-primary" value="Enviar" />
+        </div>
+    </div>
+}

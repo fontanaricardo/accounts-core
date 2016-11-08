@@ -17,5 +17,10 @@ namespace Accounts.Models.ManageViewModels
         public bool TwoFactor { get; set; }
 
         public bool BrowserRemembered { get; set; }
+
+        public EletronicSignatureStatus EletronicSignatureStatus { get; set; }
+
+        public string LinkSeiProtocol { get; set; }
+
     }
 }

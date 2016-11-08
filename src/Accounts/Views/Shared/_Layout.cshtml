@@ -2,67 +2,90 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Accounts</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Prefeitura de Joinville</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
 
-    <environment names="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
+    <link rel="stylesheet" id="pyli-style-css" href="https://www.joinville.sc.gov.br/wp-content/themes/pyli/css/pyli.css?ver=4.5.2" type="text/css" media="all">
+    <link rel="stylesheet" id="bootstrap-style-css" href="https://www.joinville.sc.gov.br/wp-content/themes/pyli/bootstrap/css/bootstrap.min.css" type="text/css" media="all">
+    <link rel="stylesheet" id="fontawesome-style-css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" type="text/css" media="all">
+
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+
+    <!-- Header do site -->
+    <header class="pmj-header" role="banner">
+        <!-- Cor de fundo do Header -->
+        <div class="pmj-header-bg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <!-- Marca da PMJ -->
+                        <a href="https://www.joinville.sc.gov.br/" class="pmj-brand" rel="home" title="Ir para o início">
+                            <img src="https://www.joinville.sc.gov.br/wp-content/uploads/2016/06/pmj-brand.png" alt="Prefeitura de Joinville" class="pmj-brand-img">
+                        </a>
+                    </div>
+                    <div class="col-sm-4">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="navbar-default">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">Accounts</a>
             </div>
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                </ul>
-                @await Html.PartialAsync("_LoginPartial")
+                @Html.Partial("_LoginPartial")
             </div>
         </div>
     </div>
-    <div class="container body-content">
-        @RenderBody()
+    <div class="container" >
+
+		
+		<p class="text-danger">@Html.Raw(TempData["error"])</p>
+		<p class="text-success">@Html.Raw(TempData["success"])</p>
+
+        <div class="container-fluid body-content">
+
+            @RenderBody()
+
+        </div>
+
         <hr />
-        <footer>
-            <p>&copy; 2016 - Accounts</p>
-        </footer>
+
     </div>
 
-    <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery">
-        </script>
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+    <footer class="pmj-footer" style="bottom:0;width:100%;">
+        <div class="pmj-footer-bg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-8">
+                    </div>
 
+                    <div class="col-sm-4">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/js/jquery.maskedinput.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script type='text/javascript' src='https://www.joinville.sc.gov.br/wp-content/themes/pyli/bootstrap/js/bootstrap.min.js'></script>
     @RenderSection("scripts", required: false)
+
 </body>
 </html>

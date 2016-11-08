@@ -1,0 +1,39 @@
+﻿@model IEnumerable<Accounts.Models.Phone>
+
+@{
+    ViewBag.Title = "Meus telefones";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<h4>Cadastre ou atualize seus telefones para contato.</h4>
+
+<hr />
+
+<p>
+    <a href="/Manage" class="btn btn-default">Voltar</a>
+    <a href="/Phones/Create" class="btn btn-primary">Adicionar</a>
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Number)
+        </th>
+        <th>
+            Ações
+        </th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Number)
+        </td>
+        <td>
+            @Html.ActionLink("Editar", "Edit", new { id=item.PhoneID }) |
+            @Html.ActionLink("Excluir", "Delete", new { id=item.PhoneID })
+        </td>
+    </tr>
+}
+
+</table>

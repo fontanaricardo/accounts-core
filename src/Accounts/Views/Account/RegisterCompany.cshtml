@@ -1,0 +1,225 @@
+﻿@model Accounts.Models.RegisterCompanyViewModel
+
+@using Recaptcha.Web.Mvc
+
+@{
+    ViewBag.Title = "Cadastro de pessoa jurídica";
+}
+
+<h2>@ViewBag.Title</h2>
+
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Company.CNPJ, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Company.CNPJ, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Company.CNPJ, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Company.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Company.Email, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Company.Email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Company.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Company.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Company.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Company.CompanyName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Company.CompanyName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Company.CompanyName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Company.MunicipalRegistration, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Company.MunicipalRegistration, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Company.MunicipalRegistration, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+                @Html.EditorFor(m => m.Password, "Password")
+				@Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.ConfirmPassword, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(m => m.ConfirmPassword, "Password")
+				@Html.ValidationMessageFor(model => model.ConfirmPassword, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="control-label col-md-2" for="">Telefone</label>
+			<div class="col-md-10" id="PhonesDiv">
+
+				@foreach (string phoneStr in ViewBag.Phones)
+				{
+					if (phoneStr == ViewBag.Phones[0])
+					{
+						<input class="form-control text-box single-line" id="Phone" name="Phone" type="text" value="@(phoneStr)">
+					}
+					else
+					{
+						<div><br><input class="form-control text-box single-line" id="Phone" name="Phone" type="text" value="@(phoneStr)"></div>
+					}
+				}
+
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<div class="col-md-offset-2 col-md-10">
+				<a href="javascript:void(0);" class="btn btn-primary" id="AddPhoneBtn">Adicionar telefone</a>
+				<a href="javascript:void(0);" class="btn btn-default" id="RemovePhoneBtn">Remover telefone</a>
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.ZipCode, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				<div class="form-inline">
+					@Html.EditorFor(model => model.Company.Address.ZipCode, new { htmlAttributes = new { @class = "form-control" } })
+					<button type="button" id="btnBuscarCEP" title="Busca o CEP para preencher os demais campos do formulário" class="btn btn-primary">
+						<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+					</button>
+				</div>
+
+				@Html.ValidationMessageFor(model => model.Company.Address.ZipCode, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.Street, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(model => model.Company.Address.Street, new { htmlAttributes = new { @class = "form-control" } })
+				@Html.ValidationMessageFor(model => model.Company.Address.Street, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.Number, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(model => model.Company.Address.Number, new { htmlAttributes = new { @class = "form-control" } })
+				@Html.ValidationMessageFor(model => model.Company.Address.Number, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.District, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(model => model.Company.Address.District, new { htmlAttributes = new { @class = "form-control" } })
+				@Html.ValidationMessageFor(model => model.Company.Address.District, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.City, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(model => model.Company.Address.City, new { htmlAttributes = new { @class = "form-control" } })
+				@Html.ValidationMessageFor(model => model.Company.Address.City, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			@Html.LabelFor(model => model.Company.Address.State, htmlAttributes: new { @class = "control-label col-md-2" })
+			<div class="col-md-10">
+				@Html.EditorFor(model => model.Company.Address.State, new { htmlAttributes = new { @class = "form-control" } })
+				@Html.ValidationMessageFor(model => model.Company.Address.State, "", new { @class = "text-danger" })
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-md-offset-2 col-md-10">
+				@Html.Recaptcha()
+			</div>
+		</div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Cadastrar" class="btn btn-primary" />
+				<a href="~/Account/Login" class="btn btn-default">Cancelar</a>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+	<script>
+		$("#AddPhoneBtn").click(function () {
+			$("#PhonesDiv").append('<div><br><input class="form-control text-box single-line" id="Phone" name="Phone" type="text" value=""></div>');
+			maskPhones();
+		});
+
+		$("#RemovePhoneBtn").click(function () {
+			$("#PhonesDiv div:last").remove();
+		});
+
+		$(document).ready(function () {
+
+			maskPhones();
+			$("#Company_CNPJ").mask("99999999999999");
+
+			$("#btnBuscarCEP").click(function (event) {
+				event.preventDefault();
+				$("#btnBuscarCEP").prop("disabled", true);
+				cep = $("input[name*='.Address.ZipCode']").val().trim();
+
+				$.getJSON("https://virtual.joinville.sc.gov.br/Endereco/Logradouros/Index?cep=" + cep, function (data) {
+					$("input[name*='.Address.Street']").val(data.registros[0].Tipo + " " + data.registros[0].Logradouro);
+					$("input[name*='.Address.District']").val(data.registros[0].Bairro);
+					$("input[name*='.Address.City']").val(data.registros[0].Cidade);
+					$("input[name*='.Address.State']").val(data.registros[0].UF);
+				}).fail(function () {
+					$("input[name*='.Address.Street']").prop("readonly", false);
+					$("input[name*='.Address.Street']").val("");
+					$("input[name*='.Address.District']").prop("readonly", false);
+					$("input[name*='.Address.District']").val("");
+					$("input[name*='.Address.City']").prop("readonly", false);
+					$("input[name*='.Address.City']").val("");
+					$("input[name*='.Address.State']").prop("readonly", false);
+					$("input[name*='.Address.State']").val("");
+					alert("CEP não encontrado");
+				}).success(function () {
+					$("input[name*='.Address.Street']").prop("readonly", true);
+					$("input[name*='.Address.District']").prop("readonly", true);
+					$("input[name*='.Address.City']").prop("readonly", true);
+					$("input[name*='.Address.State']").prop("readonly", true);
+				}).always(function () {
+					$("#btnBuscarCEP").prop("disabled", false);
+				});
+
+			});
+		});
+
+		function maskPhones() {
+			$('input[name*="Phone"]').mask("(99) 99999999?9");
+		}
+	</script>
+}
