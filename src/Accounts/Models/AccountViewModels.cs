@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System.ComponentModel.DataAnnotations;
+
     public class ExternalLoginConfirmationViewModel
     {
         [Required]
@@ -19,8 +17,9 @@ namespace Accounts.Models
     public class SendCodeViewModel
     {
         public string SelectedProvider { get; set; }
-        // public ICollection<System.Web.Mvc.SelectListItem> Providers { get; set; }
+
         public string ReturnUrl { get; set; }
+
         public bool RememberMe { get; set; }
     }
 
@@ -32,6 +31,7 @@ namespace Accounts.Models
         [Required]
         [Display(Name = "Code")]
         public string Code { get; set; }
+
         public string ReturnUrl { get; set; }
 
         [Display(Name = "Remember this browser?")]
@@ -80,13 +80,13 @@ namespace Accounts.Models
 
         // TODO: Centralizar regex no código
         [Display(Name = "Email")]
-        [Required, EmailAddress(ErrorMessage = "E-mail inválido.")]
+        [Required]
+        [EmailAddress(ErrorMessage = "E-mail inválido.")]
         public string Email { get; set; }
 
         [Display(Name = "Confirmação do e-mail")]
         [Compare("Email", ErrorMessage = "O e-mail e sua confirmação não conferem.")]
         public string ConfirmEmail { get; set; }
-        
     }
 
     public class RegisterCompanyViewModel
@@ -108,7 +108,8 @@ namespace Accounts.Models
 
     public class RegisterViewModel
     {
-        [Required, EmailAddress(ErrorMessage = "E-mail inválido")]
+        [Required]
+        [EmailAddress(ErrorMessage = "E-mail inválido")]
         [Display(Name = "Email")]
         public string Email { get; set; }
 
@@ -134,7 +135,7 @@ namespace Accounts.Models
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
-        
+
         [Required]
         [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
         [DataType(DataType.Password)]
@@ -179,7 +180,8 @@ namespace Accounts.Models
         public string CurrentEmail { get; set; }
 
         [Display(Name = "Email")]
-        [Required, EmailAddress(ErrorMessage = "E-mail inválido")]
+        [Required]
+        [EmailAddress(ErrorMessage = "E-mail inválido")]
         public string Email { get; set; }
 
         [Display(Name = "Confirmação do e-mail")]

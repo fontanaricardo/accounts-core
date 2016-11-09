@@ -1,23 +1,33 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Principal;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System;
+    using System.ComponentModel.DataAnnotations;
+    using System.Linq;
+    using System.Security.Principal;
+
     public class AuthenticationToken
     {
-        public AuthenticationToken() { }
+        public AuthenticationToken()
+        {
+        }
 
         public AuthenticationToken(IPrincipal user, Uri uri)
         {
-            if (user.Identity != null) UserName = user.Identity.Name;
-            if (uri.Host != null) Domain = uri.Host;
+            if (user.Identity != null)
+            {
+                UserName = user.Identity.Name;
+            }
+
+            if (uri.Host != null)
+            {
+                Domain = uri.Host;
+            }
+
             CreatedAt = DateTime.Now;
             Expiration = DateTime.Now.AddDays(7);
             GenerateToken();
         }
-        
+
         [Key]
         public int TokenID { get; set; }
 

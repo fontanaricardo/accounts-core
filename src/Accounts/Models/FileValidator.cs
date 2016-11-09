@@ -1,22 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.IO;
-using System.Linq;
-
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.IO;
+    using System.Linq;
+    using Microsoft.AspNetCore.Http;
+
     /// <summary>
     /// Efetua validações nos arquivos
     /// </summary>
     [NotMapped]
     public class FileValidator : IValidatableObject
     {
-        private static readonly int maxSizeMb = 1;
-        private static readonly string[] extensions = { ".pdf" };
+        private static readonly int MaxSizeMb = 1;
+        private static readonly string[] Extensions = { ".pdf" };
         private IFormFile file;
 
         /// <summary>
@@ -48,20 +46,22 @@ namespace Accounts.Models
             }
             else
             {
-                if(file.ContentDisposition.Length == default(int))
+                if (file.ContentDisposition.Length == default(int))
                 {
                     results.Add(new ValidationResult(string.Format("O arquivo \"{0}\" não possui conteúdo.", FileType)));
                 }
-                if (file.ContentDisposition.Length > maxSizeMb * 1024 * 1024)
+
+                if (file.ContentDisposition.Length > MaxSizeMb * 1024 * 1024)
                 {
-                    results.Add(new ValidationResult(string.Format("O arquivo \"{0}\" tem tamanho superior a {1} Mb.", FileType, maxSizeMb)));
+                    results.Add(new ValidationResult(string.Format("O arquivo \"{0}\" tem tamanho superior a {1} Mb.", FileType, MaxSizeMb)));
                 }
-                if (!extensions.Contains(Path.GetExtension(file.FileName)))
+
+                if (!Extensions.Contains(Path.GetExtension(file.FileName)))
                 {
-                    results.Add(new ValidationResult(string.Format("O arquivo \"{0}\" possui extensão diferente de \"{1}\"", FileType, string.Join(" ", extensions))));
+                    results.Add(new ValidationResult(string.Format("O arquivo \"{0}\" possui extensão diferente de \"{1}\"", FileType, string.Join(" ", Extensions))));
                 }
             }
-            
+
             return results;
         }
     }

@@ -1,17 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Accounts.Data;
-using Microsoft.AspNetCore.Identity;
-using Accounts.Models;
-using Microsoft.Extensions.Options;
-using Accounts.Services;
-using Microsoft.EntityFrameworkCore;
-
 namespace Accounts.Controllers
 {
+    using System;
+    using System.Linq;
+    using Data;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+    using Models;
+    using Services;
+
     public class CertificationController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -25,27 +23,33 @@ namespace Accounts.Controllers
             _appSettings = appSettings;
         }
 
-
         public ActionResult AddDocument()
         {
             Person person = GetPerson();
 
             ActionResult redirect = null;
             redirect = CheckEletronicSignatureStatus(person, redirect);
-            if (redirect != null) return redirect;
+            if (redirect != null)
+            {
+                return redirect;
+            }
 
             return View();
         }
 
         [ActionName("AddDocument")]
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AddDocument(AddDocumentViewModel model)
         {
             Person person = GetPerson();
 
             ActionResult redirect = null;
             redirect = CheckEletronicSignatureStatus(person, redirect);
-            if (redirect != null) return redirect;
+            if (redirect != null)
+            {
+                return redirect;
+            }
 
             if (ModelState.IsValid)
             {
@@ -53,16 +57,15 @@ namespace Accounts.Controllers
                 {
                     model.AddDocumentsToProtocol(person, _appSettings.Value);
                     TempData["success"] = "Documento adicionado com sucesso.";
-
                 }
                 catch (ArgumentException ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError(string.Empty, ex.Message);
                     return View(model);
                 }
                 catch (System.IO.FileLoadException ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
+                    ModelState.AddModelError(string.Empty, ex.Message);
                     return View(model);
                 }
 
@@ -76,13 +79,14 @@ namespace Accounts.Controllers
         {
             return Json(UpdateEletronicSignature());
         }
-        
+
         private ActionResult CheckEletronicSignatureStatus(Person person, ActionResult redirect)
         {
             if (person.EletronicSignatureStatus == EletronicSignatureStatus.Unsolicited)
             {
                 redirect = RedirectToAction("EletronicSignature", "Manage");
             }
+
             if (person.EletronicSignatureStatus == EletronicSignatureStatus.Approved)
             {
                 TempData["success"] = "Assinatura eletrônica já aprovada.";

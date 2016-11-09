@@ -1,20 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Accounts.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Accounts.Services;
-using Accounts.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace Accounts.Controllers
 {
+    using System;
+    using System.Linq;
+    using Data;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+    using Models;
+    using Services;
+
     public class PhonesController : Controller
     {
-
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IOptions<AppSettings> _appSettings;
@@ -41,12 +38,14 @@ namespace Accounts.Controllers
             {
                 return BadRequest();
             }
+
             CheckPhoneProperty((int)id);
             Phone phone = _dbContext.Phones.FirstOrDefault(p => p.PhoneID == id);
             if (phone == null)
             {
                 return NotFound();
             }
+
             return View(phone);
         }
 
@@ -57,7 +56,7 @@ namespace Accounts.Controllers
         }
 
         // POST: Phones/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -67,7 +66,10 @@ namespace Accounts.Controllers
             CheckDuplicates(model.Phone);
             SetTimesStamp(model.Phone);
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             // Verifica se a senha está correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
@@ -91,6 +93,7 @@ namespace Accounts.Controllers
             {
                 return BadRequest();
             }
+
             CheckPhoneProperty((int)id);
             Phone phone = _dbContext.Phones.FirstOrDefault(p => p.PhoneID == id);
             if (phone == null)
@@ -107,7 +110,7 @@ namespace Accounts.Controllers
         }
 
         // POST: Phones/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -118,7 +121,10 @@ namespace Accounts.Controllers
             SetUser(model.Phone);
             CheckDuplicates(model.Phone);
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             // Verifica se a senha está correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
@@ -133,7 +139,6 @@ namespace Accounts.Controllers
             _dbContext.SaveChanges();
             UpdatePhoneSei(model);
             return RedirectToAction("Index");
-
         }
 
         // GET: Phones/Delete/5
@@ -143,6 +148,7 @@ namespace Accounts.Controllers
             {
                 return BadRequest();
             }
+
             CheckPhoneProperty((int)id);
             Phone phone = _dbContext.Phones.FirstOrDefault(p => p.PhoneID == id);
             if (phone == null)
@@ -159,13 +165,17 @@ namespace Accounts.Controllers
         }
 
         // POST: Phones/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(PhoneViewModel model)
         {
             SetUser(model.Phone);
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             // Verifica se a senha está correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
@@ -214,7 +224,10 @@ namespace Accounts.Controllers
         private void SetTimesStamp(Phone phone)
         {
             phone.UpdatedAt = DateTime.Now;
-            if (phone.CreatedAt == default(DateTime)) phone.CreatedAt = DateTime.Now;
+            if (phone.CreatedAt == default(DateTime))
+            {
+                phone.CreatedAt = DateTime.Now;
+            }
         }
 
         private void CheckDuplicates(Phone phone)
@@ -238,6 +251,5 @@ namespace Accounts.Controllers
                 person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
             }
         }
-
     }
 }

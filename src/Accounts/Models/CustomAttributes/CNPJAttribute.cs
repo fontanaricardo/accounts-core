@@ -1,31 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-
-namespace Accounts.CustomAttributes
+﻿namespace Accounts.CustomAttributes
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.Linq;
+
     /// <summary>
     /// Verifica se o atributo é um CNPJ válido
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
     public class CNPJAttribute : ValidationAttribute
     {
-        public CNPJAttribute() : base("CNPJ Inválido") { }
-
-        protected override ValidationResult IsValid(object value, ValidationContext context)
+        public CNPJAttribute()
+            : base("CNPJ Inválido")
         {
-            value = value ?? string.Empty;
-
-            var memberNames = new List<string>();
-            if (context != null) memberNames.Add(context.MemberName);
-
-            if (!ValidarCNPJ(value.ToString()))
-            {
-                return new ValidationResult(ErrorMessage, memberNames);
-            }
-
-            return ValidationResult.Success;
         }
 
         /// <summary>
@@ -38,15 +26,20 @@ namespace Accounts.CustomAttributes
         {
             cnpj = cnpj ?? string.Empty;
 
-            string CNPJ = cnpj.Replace(".", "");
-            CNPJ = CNPJ.Replace("/", "");
-            CNPJ = CNPJ.Replace("-", "");
+            string newCNPJ = cnpj.Replace(".", string.Empty);
+            newCNPJ = newCNPJ.Replace("/", string.Empty);
+            newCNPJ = newCNPJ.Replace("-", string.Empty);
 
-            if (CNPJ.ToCharArray().Distinct().Count() == 1) return false;
+            if (newCNPJ.ToCharArray().Distinct().Count() == 1)
+            {
+                return false;
+            }
 
             int[] digitos, soma, resultado;
-            int nrDig; string ftmt;
-            bool[] CNPJOk; ftmt = "6543298765432";
+            int nrDig;
+            string ftmt;
+            bool[] okCNPJ;
+            ftmt = "6543298765432";
             digitos = new int[14];
             soma = new int[2];
             soma[0] = 0;
@@ -54,27 +47,40 @@ namespace Accounts.CustomAttributes
             resultado = new int[2];
             resultado[0] = 0;
             resultado[1] = 0;
-            CNPJOk = new bool[2];
-            CNPJOk[0] = false;
-            CNPJOk[1] = false;
+            okCNPJ = new bool[2];
+            okCNPJ[0] = false;
+            okCNPJ[1] = false;
 
             try
             {
                 for (nrDig = 0; nrDig < 14; nrDig++)
                 {
-                    digitos[nrDig] = int.Parse(CNPJ.Substring(nrDig, 1));
-                    if (nrDig <= 11) soma[0] += (digitos[nrDig] * int.Parse(ftmt.Substring(nrDig + 1, 1)));
-                    if (nrDig <= 12) soma[1] += (digitos[nrDig] * int.Parse(ftmt.Substring(nrDig, 1)));
+                    digitos[nrDig] = int.Parse(newCNPJ.Substring(nrDig, 1));
+                    if (nrDig <= 11)
+                    {
+                        soma[0] += digitos[nrDig] * int.Parse(ftmt.Substring(nrDig + 1, 1));
+                    }
+
+                    if (nrDig <= 12)
+                    {
+                        soma[1] += digitos[nrDig] * int.Parse(ftmt.Substring(nrDig, 1));
+                    }
                 }
+
                 for (nrDig = 0; nrDig < 2; nrDig++)
                 {
-                    resultado[nrDig] = (soma[nrDig] % 11);
+                    resultado[nrDig] = soma[nrDig] % 11;
                     if ((resultado[nrDig] == 0) || (resultado[nrDig] == 1))
-                        CNPJOk[nrDig] = (digitos[12 + nrDig] == 0);
+                    {
+                        okCNPJ[nrDig] = digitos[12 + nrDig] == 0;
+                    }
                     else
-                        CNPJOk[nrDig] = (digitos[12 + nrDig] == (11 - resultado[nrDig]));
+                    {
+                        okCNPJ[nrDig] = digitos[12 + nrDig] == (11 - resultado[nrDig]);
+                    }
                 }
-                return (CNPJOk[0] && CNPJOk[1]);
+
+                return okCNPJ[0] && okCNPJ[1];
             }
             catch
             {
@@ -82,5 +88,22 @@ namespace Accounts.CustomAttributes
             }
         }
 
+        protected override ValidationResult IsValid(object value, ValidationContext context)
+        {
+            value = value ?? string.Empty;
+
+            var memberNames = new List<string>();
+            if (context != null)
+            {
+                memberNames.Add(context.MemberName);
+            }
+
+            if (!ValidarCNPJ(value.ToString()))
+            {
+                return new ValidationResult(ErrorMessage, memberNames);
+            }
+
+            return ValidationResult.Success;
+        }
     }
 }

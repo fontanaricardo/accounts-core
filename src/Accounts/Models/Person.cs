@@ -1,26 +1,26 @@
-﻿using Accounts.CustomAttributes;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Accounts.Services;
-using System.Linq;
-using System.Text;
-using Accounts.Extensions;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Linq;
+    using System.Text;
+    using CustomAttributes;
+    using Extensions;
+    using Newtonsoft.Json;
+    using Services;
+
     public class Person : IValidatableObject
     {
-        
+        private string _name;
+
         [JsonIgnore]
         [Key]
         public int PersonID { get; set; }
 
-        private string _name;
-
-        [Required, MaxLength(1500)]
+        [Required]
+        [MaxLength(1500)]
         [JsonProperty("nome")]
         [Display(Name = "Nome")]
         public string Name
@@ -32,7 +32,7 @@ namespace Accounts.Models
 
             set
             {
-                if(!string.IsNullOrEmpty(value))
+                if (!string.IsNullOrEmpty(value))
                 {
                     this._name = value.ToNameCase();
                 }
@@ -41,20 +41,24 @@ namespace Accounts.Models
 
         [Display(Name = "CPF")]
         [JsonProperty("cpf")]
-        [Required, MaxLength(11), MinLength(11)]
+        [Required]
+        [MaxLength(11)]
+        [MinLength(11)]
         public string CPF { get; set; }
-        
+
         [Required]
         [Display(Name = "E-mail")]
         [JsonProperty("email")]
         public string Email { get; set; }
-        
+
         [Display(Name = "Identidade")]
-        [Required, MaxLength(500)]
+        [Required]
+        [MaxLength(500)]
         [JsonProperty("rg")]
         public string RG { get; set; }
-        
-        [Required, MaxLength(2000)]
+
+        [Required]
+        [MaxLength(2000)]
         [Display(Name = "Órgão expedidor")]
         [JsonProperty("orgao_expedidor")]
         public string Dispatcher { get; set; }
@@ -66,7 +70,7 @@ namespace Accounts.Models
 
         [JsonProperty("id_usuario")]
         [Display(Name = "Código no SEI")]
-        public Int64? SeiId { get; set; }
+        public long? SeiId { get; set; }
 
         [JsonIgnore]
         [Display(Name = "Protocolo do SEI")]
@@ -91,7 +95,7 @@ namespace Accounts.Models
 
         [JsonIgnore]
         public ICollection<Access> Access { get; set; }
-        
+
         /// <summary>
         /// Lista de telefones do usuário, este attributo não é mapeado, carregar antes de usar.
         /// </summary>
@@ -120,10 +124,54 @@ namespace Accounts.Models
         }
 
         /// <summary>
+        /// Retorna o objeto person a partir dos dados do SEI. Utiliza o serviço /pmj/cadastro_usuario_externo_consulta.php
+        /// </summary>
+        /// <param name="id">Código do usuário no SEI</param>
+        /// <returns>Objeto Person com os dados no SEI</returns>
+        public static Person GetSeiPersonBy(long id, AppSettings appSettings)
+        {
+            return GetSeiPersonBy("id_usuario", id.ToString(), appSettings);
+        }
+
+        /// <summary>
+        /// Retorna o objeto person a partir dos dados do SEI. Utiliza o serviço /pmj/cadastro_usuario_externo_consulta.php
+        /// </summary>
+        /// <param name="email">Email do usuário no SEI</param>
+        /// <returns>Objeto Person com os dados no SEI</returns>
+        public static Person GetSeiPersonBy(string email, AppSettings appSettings)
+        {
+            return GetSeiPersonBy("email", email, appSettings);
+        }
+
+        /// <summary>
+        /// Converte uma string no formato Json em pessoa
+        /// </summary>
+        /// <param name="person">Objeto do tipo pessoa</param>
+        /// <param name="json">Json a ser convertido</param>
+        /// <returns>Objeto do tipo Person</returns>
+        public static Person DeserializePersonJson(Person person, string json)
+        {
+            var result = JsonConvert.DeserializeObject<dynamic>(json);
+
+            if (((string)result.msg).ToLowerInvariant().Equals("usuário encontrado"))
+            {
+                person = JsonConvert.DeserializeObject<Person>(json);
+
+                if (((string)result.sta_tipo_descricao).ToLowerInvariant().Contains("liberado"))
+                {
+                    person.EletronicSignatureStatus = EletronicSignatureStatus.Approved;
+                }
+
+                person.CPF = person.CPF.PadLeft(11, '0');
+            }
+
+            return person;
+        }
+
+        /// <summary>
         /// Cria um usuário no SEI
         /// </summary>
         /// <param name="password">Senha do usuário no SEI</param>
-        /// <param name="passConfirmation">Confirmação de senha do usuário</param>
         public void CreateOrUpdateSeiUser(string password, AppSettings appSettings)
         {
             if (Phones == null || Phones.Count() == 0)
@@ -154,12 +202,12 @@ namespace Accounts.Models
                     SeiId = seiPerson.SeiId;
                 }
             }
-            
+
             if (SeiId != null)
             {
                 values.Add(new KeyValuePair<string, string>("valores[id_usuario]", SeiId.ToString()));
             }
-            
+
             // Cria vetor no formato do PHP
             values.Add(new KeyValuePair<string, string>("valores[nome]", Name));
             values.Add(new KeyValuePair<string, string>("valores[cpf]", CPF));
@@ -193,32 +241,40 @@ namespace Accounts.Models
         /// <summary>
         /// Altera a senha do usuário no SEI ignorando exceções de infraestrutura
         /// </summary>
-        /// <param name="Password">Nova senha do usuário</param>
+        /// <param name="password">Nova senha do usuário</param>
         /// <param name="revokeSign">Caso True revoga a assinatura eletrônica do usuário</param>
-        public void ChangePasswordSei(string Password, AppSettings appSettings, bool revokeSign = false)
+        public void ChangePasswordSei(string password, AppSettings appSettings, bool revokeSign = false)
         {
-            if (SeiId == null) return;
-            
+            if (SeiId == null)
+            {
+                return;
+            }
+
             var values = new List<KeyValuePair<string, string>>
             {
                     new KeyValuePair<string, string>("token", appSettings.Token),
                     new KeyValuePair<string, string>("id_usuario", SeiId.ToString()),
-                    new KeyValuePair<string, string>("nova_senha", Password)
+                    new KeyValuePair<string, string>("nova_senha", password)
             };
 
             if (revokeSign)
             {
                 new KeyValuePair<string, string>("status", "P");
             }
-                
+
             byte[] response = ExtendableType.Post(appSettings.UrlSei + "/pmj/cadastro_usuario_externo_senha.php", values);
 
             var result = JsonConvert.DeserializeObject<dynamic>(Encoding.GetEncoding(appSettings.SeiEncoding).GetString(response));
 
-            if (result.status != 1) throw new Exception("Erro ao alterar a senha no SEI");
+            if (result.status != 1)
+            {
+                throw new Exception("Erro ao alterar a senha no SEI");
+            }
 
-            if (revokeSign) EletronicSignatureStatus = EletronicSignatureStatus.Unsolicited;
-            
+            if (revokeSign)
+            {
+                EletronicSignatureStatus = EletronicSignatureStatus.Unsolicited;
+            }
         }
 
         /// <summary>
@@ -234,13 +290,16 @@ namespace Accounts.Models
                 Person seiPerson = GetSeiPersonBy((long)SeiId, appSettings);
                 if (seiPerson != null)
                 {
-                    if (EletronicSignatureStatus == EletronicSignatureStatus.UnderApproval && seiPerson.EletronicSignatureStatus == EletronicSignatureStatus.Unsolicited) return;
+                    if (EletronicSignatureStatus == EletronicSignatureStatus.UnderApproval && seiPerson.EletronicSignatureStatus == EletronicSignatureStatus.Unsolicited)
+                    {
+                        return;
+                    }
 
                     EletronicSignatureStatus = seiPerson.EletronicSignatureStatus;
                 }
             }
         }
-        
+
         /// <summary>
         /// Mostra se a pessoa possui uma assinatura eletrônica aprovada
         /// </summary>
@@ -262,81 +321,16 @@ namespace Accounts.Models
             return false;
         }
 
-        /// <summary>
-        /// Retorna o objeto person a partir dos dados do SEI. Utiliza o serviço /pmj/cadastro_usuario_externo_consulta.php
-        /// </summary>
-        /// <param name="id">Código do usuário no SEI</param>
-        /// <returns>Objeto Person com os dados no SEI</returns>
-        public static Person GetSeiPersonBy(long id, AppSettings appSettings)
-        {
-            return GetSeiPersonBy("id_usuario", id.ToString(), appSettings);
-        }
-
-        /// <summary>
-        /// Retorna o objeto person a partir dos dados do SEI. Utiliza o serviço /pmj/cadastro_usuario_externo_consulta.php
-        /// </summary>
-        /// <param name="email">Email do usuário no SEI</param>
-        /// <returns>Objeto Person com os dados no SEI</returns>
-        public static Person GetSeiPersonBy(string email, AppSettings appSettings)
-        {
-            return GetSeiPersonBy("email", email, appSettings);
-        }
-
-        private static Person GetSeiPersonBy(string key, string value, AppSettings appSettings)
-        {
-            Person person = null;
-
-            var values = new List<KeyValuePair<string, string>>()
-            {
-                new KeyValuePair<string, string>("token", appSettings.Token),
-                new KeyValuePair<string, string>(key, value)
-            };
-
-            var response = ExtendableType.Post(appSettings.UrlSei + "/pmj/cadastro_usuario_externo_consulta.php", values);
-
-            string strResponse = Encoding.GetEncoding(appSettings.SeiEncoding).GetString(response);
-            person = DeserializePersonJson(person, strResponse);
-
-            return person;
-            
-        }
-
-        /// <summary>
-        /// Converte uma string no formato Json em pessoa
-        /// </summary>
-        /// <param name="person">Objeto do tipo pessoa</param>
-        /// <param name="json">Json a ser convertido</param>
-        /// <returns>Objeto do tipo Person</returns>
-        public static Person DeserializePersonJson(Person person, string json)
-        {
-            var result = JsonConvert.DeserializeObject<dynamic>(json);
-
-            if (((string)result.msg).ToLowerInvariant().Equals("usuário encontrado"))
-            {
-
-                person = JsonConvert.DeserializeObject<Person>(json);
-
-                if (((string)result.sta_tipo_descricao).ToLowerInvariant().Contains("liberado"))
-                {
-                    person.EletronicSignatureStatus = EletronicSignatureStatus.Approved;
-                }
-
-                person.CPF = person.CPF.PadLeft(11, '0');
-            }
-            
-            return person;
-        }
-
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            
+
             sb.Append("Nome: ");
             sb.AppendLine(Name);
 
             sb.Append("CPF: ");
             sb.AppendLine(CPF);
-            
+
             sb.Append("RG: ");
             sb.Append(RG);
             sb.Append(" Órgão emissor: ");
@@ -358,26 +352,37 @@ namespace Accounts.Models
             var results = new List<ValidationResult>();
 
             var rUtils = new RegexUtilities();
-            
+
             // TODO: Ver uma maneira melhor de fazer isso
             if (!CPFAttribute.ValidarCPF(CPF))
             {
-                results.Add(new ValidationResult("CPF inválido", new String[] { "CPF" }));
+                results.Add(new ValidationResult("CPF inválido", new string[] { "CPF" }));
             }
 
             if (!rUtils.IsValidEmail(Email))
             {
-                results.Add(new ValidationResult("E-mail inválido", new String[] { "Email" }));
+                results.Add(new ValidationResult("E-mail inválido", new string[] { "Email" }));
             }
-            
+
             return results;
         }
-    }
 
-    public enum EletronicSignatureStatus
-    {
-        Unsolicited = 0,
-        UnderApproval = 1,
-        Approved = 2
+        private static Person GetSeiPersonBy(string key, string value, AppSettings appSettings)
+        {
+            Person person = null;
+
+            var values = new List<KeyValuePair<string, string>>()
+            {
+                new KeyValuePair<string, string>("token", appSettings.Token),
+                new KeyValuePair<string, string>(key, value)
+            };
+
+            var response = ExtendableType.Post(appSettings.UrlSei + "/pmj/cadastro_usuario_externo_consulta.php", values);
+
+            string strResponse = Encoding.GetEncoding(appSettings.SeiEncoding).GetString(response);
+            person = DeserializePersonJson(person, strResponse);
+
+            return person;
+        }
     }
 }

@@ -2,27 +2,39 @@ stages:
   - build
   - deploy
 
+style_cop:
+  stage: build
+  tags:
+    - docker-ci
+  script:
+    - docker run --rm -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /app/linter.sh
+
 build_image:
   stage: build
   tags:
-        - docker-ci
+    - docker-ci
   only:
-        - master
+    - master
   script:
-        - docker run -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /bin/bash -c "dotnet restore /app/src/Accounts/project.json; dotnet publish -c Release -o /app/src/Accounts/publish /app/src/Accounts/project.json; chown -R 998:998 /app;"
-        - cd src/Accounts
-        - /opt/ci/build
+    - docker run --rm -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /bin/bash -e -c "dotnet restore /app/src/Accounts/project.json; dotnet publish -c Release -o /app/src/Accounts/publish /app/src/Accounts/project.json; chown -R $(id -u):$(id -g) /app;"
+    - cd src/Accounts
+    - /opt/ci/build
+    - rm -rf bin obj
+
 tag_image:
     stage: build
     tags:
-        - docker-ci
+      - docker-ci
     only:
-        - tags
+      - tags
     script:
-        - /opt/ci/tag
+      - /opt/ci/tag
+
 deploy_homologacao:
-  environment: staging
   stage: deploy
+  environment:
+    name: staging
+    url: http://accounts.pmjlle.joinville.sc.gov.br/
   tags:
     - docker-deploy
     - staging
@@ -30,9 +42,12 @@ deploy_homologacao:
     - master
   script:
     - /opt/ci/deploy
+
 deploy_producao:
-  environment: production
   stage: deploy
+  environment:
+    name: production
+    url: http://accounts.joinville.sc.gov.br/  
   tags:
     - docker-deploy
     - production

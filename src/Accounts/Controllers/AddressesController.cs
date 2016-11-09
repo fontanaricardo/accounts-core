@@ -1,17 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Accounts.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Accounts.Services;
-using Accounts.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace Accounts.Controllers
 {
+    using System.Linq;
+    using Data;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+    using Models;
+    using Services;
+
     public class AddressesController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -53,13 +50,16 @@ namespace Accounts.Controllers
         }
 
         // POST: Addresses/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(AddressViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             // Verifica se a senha está correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
@@ -86,6 +86,5 @@ namespace Accounts.Controllers
 
             return View(model);
         }
-
     }
 }

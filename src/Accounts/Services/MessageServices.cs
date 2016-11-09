@@ -1,10 +1,10 @@
-﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using System.Threading.Tasks;
-
-namespace Accounts.Services
+﻿namespace Accounts.Services
 {
+    using System.Threading.Tasks;
+    using MailKit.Net.Smtp;
+    using Microsoft.Extensions.Options;
+    using MimeKit;
+
     // This class is used by the application to send Email and SMS
     // when you turn on two-factor authentication in ASP.NET Identity.
     // For more details see this link http://go.microsoft.com/fwlink/?LinkID=532713
@@ -16,15 +16,14 @@ namespace Accounts.Services
         {
             _appSettings = appSettings.Value;
         }
-        
+
+        // For more info about e-mail send component https://github.com/jstedfast/MailKit
         public Task SendEmailAsync(string email, string subject, string message)
         {
-            // For more info about e-mail send component https://github.com/jstedfast/MailKit
-
             var emailMessage = new MimeMessage();
 
             emailMessage.From.Add(new MailboxAddress("Prefeitura de Joinville", "no-reply@joinville.sc.gov.br"));
-            emailMessage.To.Add(new MailboxAddress("", email));
+            emailMessage.To.Add(new MailboxAddress(string.Empty, email));
             emailMessage.Subject = subject;
             emailMessage.Body = new TextPart("plain") { Text = message };
 
@@ -35,7 +34,7 @@ namespace Accounts.Services
                     UserName = _appSettings.MailUser,
                     Password = _appSettings.MailPassword
                 };
-                
+
                 client.Connect(_appSettings.MailServer, _appSettings.MailPort, false);
 
                 // Note: since we don't have an OAuth2 token, disable

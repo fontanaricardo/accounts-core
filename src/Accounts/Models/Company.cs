@@ -1,12 +1,12 @@
-﻿using Accounts.CustomAttributes;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System;
-using Accounts.Extensions;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using CustomAttributes;
+    using Extensions;
+
     public class Company : IValidatableObject
     {
         private string _name;
@@ -16,14 +16,18 @@ namespace Accounts.Models
         public int CompanyID { get; set; }
 
         [Display(Name = "CNPJ")]
-        [Required, MaxLength(14), MinLength(14), CNPJ]
+        [Required]
+        [MaxLength(14)]
+        [MinLength(14)]
+        [CNPJ]
         public string CNPJ { get; set; }
 
         [Required]
         [Display(Name = "E-mail")]
         public string Email { get; set; }
-        
-        [Required, MaxLength(2000)]
+
+        [Required]
+        [MaxLength(2000)]
         [Display(Name = "Nome fantasia")]
         public string Name
         {
@@ -40,8 +44,9 @@ namespace Accounts.Models
                 }
             }
         }
-        
-        [Required, MaxLength(2000)]
+
+        [Required]
+        [MaxLength(2000)]
         [Display(Name = "Razão social")]
         public string CompanyName
         {
@@ -65,9 +70,9 @@ namespace Accounts.Models
         [Required]
         [ForeignKey("Address")]
         public int AddressID { get; set; }
-        
+
         public Address Address { get; set; }
-        
+
         public ICollection<Access> Access { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -78,7 +83,7 @@ namespace Accounts.Models
 
             if (!rUtils.IsValidEmail(Email))
             {
-                results.Add(new ValidationResult("E-mail inválido", new String[] { "Email" }));
+                results.Add(new ValidationResult("E-mail inválido", new string[] { "Email" }));
             }
 
             return results;

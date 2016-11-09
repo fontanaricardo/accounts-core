@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-
-namespace Accounts.Extensions
+﻿namespace Accounts.Extensions
 {
+    using System.Collections;
+    using System.Reflection;
+    using System.Text;
+
     public static class ClassExtensions
     {
         public static string PropertyList(this object obj)
@@ -24,8 +18,8 @@ namespace Accounts.Extensions
                     sb.AppendLine(p.Name + ": " + p.GetValue(obj, null));
                 }
             }
+
             return sb.ToString();
         }
-
     }
 }
