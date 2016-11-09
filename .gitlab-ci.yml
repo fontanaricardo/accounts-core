@@ -10,7 +10,7 @@ build_image:
         - master
   script:
         - docker run -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /bin/bash -c "dotnet restore /app/src/Accounts/project.json; dotnet publish -c Release -o /app/src/Accounts/publish /app/src/Accounts/project.json; chown -R 998:998 /app;"
-        - cd src/SemaProcessMicroservice
+        - cd src/Accounts
         - /opt/ci/build
 tag_image:
     stage: build
