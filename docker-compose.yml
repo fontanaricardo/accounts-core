@@ -5,7 +5,7 @@ version: '2'
 
 services:
   accounts_core:
-    image: registry.pmjlle.joinville.sc.gov.br:5000/pmj/accounts-core:${CI_BUILD_REF}
+    image: registry.pmjlle.joinville.sc.gov.br:5000/ricardo.fontana/accounts-core:${CI_BUILD_REF}
     restart: "always"
     ports:
       - "10003:80"
