@@ -14,17 +14,17 @@ services:
       - VIRTUAL_HOST
       - VIRTUAL_PORT
       - ASPNETCORE_ENVIRONMENT=Production
-	  - Token
-	  - UrlSei
-	  - SeiEncoding
-	  - VirtualUrl
-	  - Anexo
-	  - Unidade
-	  - Formulario
-	  - Procedimento
-	  - TipoProcedimento
-	  - Servico
-	  - MailServer
-	  - MailPort
-	  - MailUser
-	  - MailPassword
+      - Token
+      - UrlSei
+      - SeiEncoding
+      - VirtualUrl
+      - Anexo
+      - Unidade
+      - Formulario
+      - Procedimento
+      - TipoProcedimento
+      - Servico
+      - MailServer
+      - MailPort
+      - MailUser
+      - MailPassword
