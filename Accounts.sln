@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2F3420D9-D16
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BB51F374-B1E4-4A09-AEE4-936D5D81D7E1}"
 	ProjectSection(SolutionItems) = preProject
+		.gitlab-ci.yml = .gitlab-ci.yml
+		docker-compose.yml = docker-compose.yml
 		global.json = global.json
 	EndProjectSection
 EndProject

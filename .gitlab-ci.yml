@@ -1,0 +1,42 @@
+stages:  
+  - build
+  - deploy
+
+build_image:
+  stage: build
+  tags:
+        - docker-ci
+  only:
+        - master
+  script:
+        - docker run -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /bin/bash -c "dotnet restore /app/src/Accounts/project.json; dotnet publish -c Release -o /app/src/Accounts/publish /app/src/Accounts/project.json; chown -R 998:998 /app;"
+        - cd src/SemaProcessMicroservice
+        - /opt/ci/build
+tag_image:
+    stage: build
+    tags:
+        - docker-ci
+    only:
+        - tags
+    script:
+        - /opt/ci/tag
+deploy_homologacao:
+  environment: staging
+  stage: deploy
+  tags:
+    - docker-deploy
+    - staging
+  only:
+    - master
+  script:
+    - /opt/ci/deploy
+deploy_producao:
+  environment: production
+  stage: deploy
+  tags:
+    - docker-deploy
+    - production
+  only:
+    - tags
+  script:
+    - /opt/ci/deploy

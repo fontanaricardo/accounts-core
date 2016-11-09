@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,8 +10,6 @@ using Accounts.Data;
 using Accounts.Models;
 using Accounts.Services;
 using Microsoft.AspNetCore.Mvc.Razor;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
 
 namespace Accounts
 {
@@ -38,48 +33,47 @@ namespace Accounts
         }
 
         public IConfigurationRoot Configuration { get; }
-
+        
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureDevelopmentServices(IServiceCollection services)
         {
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddSingleton<IConfiguration>(Configuration);
-            
+
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
-            services.Configure<IdentityOptions>(options =>
-            {
-                // Password settings
-                options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-
-                // Lockout settings
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-                options.Lockout.MaxFailedAccessAttempts = 10;
-
-                // Cookie settings
-                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
-
-                // User settings
-                options.User.RequireUniqueEmail = true;
-            });
+            IdentityConfiguration(services);
 
             services.AddDistributedMemoryCache();
             services.AddSession();
+            services.AddMvc();
 
-            services.AddLocalization(options => options.ResourcesPath = "Resources");
+            // Add application services.
+            services.AddTransient<IEmailSender, AuthMessageSender>();
+            services.AddTransient<ISmsSender, AuthMessageSender>();
+        }
+        
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureProductionServices(IServiceCollection services)
+        {
+            services.Configure<AppSettings>(Configuration);
 
+            services.AddSingleton<IConfiguration>(Configuration);
+
+            var connection = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+
+            // Add framework services.
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connection), ServiceLifetime.Scoped);
+
+            IdentityConfiguration(services);
+
+            services.AddDistributedMemoryCache();
+            services.AddSession();
+            
             services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization();
@@ -92,21 +86,6 @@ namespace Accounts
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            var supportedCultures = new[]
-            {
-                new CultureInfo("en-US"),
-                new CultureInfo("pt-BR")
-            };
-
-            app.UseRequestLocalization(new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture("pt-BR"),
-                // Formatting numbers, dates, etc.
-                SupportedCultures = supportedCultures,
-                // UI strings that we have localized.
-                SupportedUICultures = supportedCultures
-            });
-
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
@@ -134,6 +113,33 @@ namespace Accounts
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Manage}/{action=Index}/{id?}");
+            });
+        }
+
+        private static void IdentityConfiguration(IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+
+                // Cookie settings
+                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
             });
         }
     }
