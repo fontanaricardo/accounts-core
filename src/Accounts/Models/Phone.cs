@@ -8,7 +8,7 @@
         public int PhoneID { get; set; }
 
         [Required]
-        [RegularExpression(pattern: @"^\(\d{2}\) ?\d{0,1}\d{8}$", ErrorMessage = "O telefone deve estar no formato (XX) XXXXXXXX")]
+        [RegularExpression(pattern: @"^\(\d{2}\) ?\d?\d{8}$", ErrorMessage = "O telefone deve estar no formato (XX) XXXXXXXX")]
         [Display(Name = "Número")]
         public string Number { get; set; }
 
