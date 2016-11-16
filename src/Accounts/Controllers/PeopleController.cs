@@ -50,11 +50,11 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Busca todos os dados do usu·rio para enviar novamente ao serviÁo do SEI
+            // Busca todos os dados do usu√°rio para enviar novamente ao servi√ßo do SEI
             Person person = _dbContext.People.Include(p => p.Address).Single(p => p.CPF == User.Identity.Name);
             person.Phones = _dbContext.Phones.Where(p => p.Document == person.CPF).ToList();
 
-            // Verifica se a senha est· correta
+            // Verifica se a senha est√° correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
             {
@@ -66,10 +66,10 @@ namespace Accounts.Controllers
             person.RG = model.RG;
             person.CPF = model.CPF;
 
-            // Revoga a assinatura eletrÙnica do usu·rio
+            // Revoga a assinatura eletr√¥nica do usu√°rio
             person.ChangePasswordSei(model.Password, _appSettings.Value, true);
 
-            // Atualiza dados na tabela de usu·rio e no SEI
+            // Atualiza dados na tabela de usu√°rio e no SEI
             user.FullUserName = model.Name;
 
             // TODO: Alterar o nome na Claim

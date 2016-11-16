@@ -61,7 +61,7 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Verifica se a senha está correta
+            // Verifica se a senha estÃ¡ correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
             {
@@ -69,11 +69,11 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Atualiza o endereço no accounts
+            // Atualiza o endereÃ§o no accounts
             _dbContext.Entry(model.Address).State = EntityState.Modified;
             _dbContext.SaveChanges();
 
-            // Busca todos os dados do usuário para enviar novamente ao serviço do SEI
+            // Busca todos os dados do usuÃ¡rio para enviar novamente ao serviÃ§o do SEI
             Person person = _dbContext.People.Include(p => p.Address).Single(p => p.CPF == User.Identity.Name);
             person.Phones = _dbContext.Phones.Where(p => p.Document == person.CPF).ToList();
 

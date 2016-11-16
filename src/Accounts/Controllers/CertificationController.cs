@@ -89,7 +89,7 @@ namespace Accounts.Controllers
 
             if (person.EletronicSignatureStatus == EletronicSignatureStatus.Approved)
             {
-                TempData["success"] = "Assinatura eletrÙnica j· aprovada.";
+                TempData["success"] = "Assinatura eletr√¥nica j√° aprovada.";
                 redirect = Redirect("~");
             }
 
@@ -103,8 +103,8 @@ namespace Accounts.Controllers
             return person;
         }
 
-        // TODO: Ver uma maneira de atualizar a assinatura sem impactar na performance da aplicaÁ„o. Executado desta forma apenas para cumprir o milestone.
-        // TODO: Implementar mÈtodo para pessoa jurÌdica
+        // TODO: Ver uma maneira de atualizar a assinatura sem impactar na performance da aplica√ß√£o. Executado desta forma apenas para cumprir o milestone.
+        // TODO: Implementar m√©todo para pessoa jur√≠dica
         private EletronicSignatureStatus UpdateEletronicSignature()
         {
             EletronicSignatureStatus status = EletronicSignatureStatus.Unsolicited;

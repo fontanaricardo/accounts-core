@@ -71,7 +71,7 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Verifica se a senha est· correta
+            // Verifica se a senha est√° correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
 
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
@@ -126,7 +126,7 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Verifica se a senha est· correta
+            // Verifica se a senha est√° correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
 
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
@@ -177,7 +177,7 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Verifica se a senha est· correta
+            // Verifica se a senha est√° correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
 
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
@@ -199,7 +199,7 @@ namespace Accounts.Controllers
             }
             else
             {
-                TempData["error"] = "VocÍ deve ter pelo menos um telefone de contato cadastrado.";
+                TempData["error"] = "Voc√™ deve ter pelo menos um telefone de contato cadastrado.";
                 return View(model);
             }
 
@@ -234,12 +234,12 @@ namespace Accounts.Controllers
         {
             if (_dbContext.Phones.Any(p => p.Document == phone.Document && p.Number == phone.Number && p.PhoneID != phone.PhoneID))
             {
-                ModelState.AddModelError("Phone.Number", "N˙mero de telefone j· cadastrado para o seu usu·rio.");
+                ModelState.AddModelError("Phone.Number", "N√∫mero de telefone j√° cadastrado para o seu usu√°rio.");
             }
         }
 
         /// <summary>
-        /// Altera o telefone do usu·rio no SEI, utiliza sempre o telefone com alteraÁ„o mais recente.
+        /// Altera o telefone do usu√°rio no SEI, utiliza sempre o telefone com altera√ß√£o mais recente.
         /// </summary>
         private void UpdatePhoneSei(PhoneViewModel model)
         {
