@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Utilizada para validações na alteração do endereço de e-mail
     /// </summary>

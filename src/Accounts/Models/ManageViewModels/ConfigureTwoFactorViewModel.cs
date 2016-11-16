@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
-
-namespace Accounts.Models.ManageViewModels
+﻿namespace Accounts.Models.ManageViewModels
 {
+    using System.Collections.Generic;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+
     public class ConfigureTwoFactorViewModel
     {
         public string SelectedProvider { get; set; }

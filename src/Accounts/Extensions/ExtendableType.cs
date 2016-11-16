@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-
-namespace System
+﻿namespace System
 {
+    using Collections.Generic;
+    using IO;
+    using Linq;
+    using Net.Http;
+
     /// <summary>
     /// Cria métodos de extensão disponíveis em todos o projeto
     /// </summary>
@@ -33,10 +33,15 @@ namespace System
                 {
                     var down = word.ToLower();
                     var character = down.ToCharArray();
-                    if (!exc.Contains(down)) character[0] = char.ToUpper(character[0]);
+                    if (!exc.Contains(down))
+                    {
+                        character[0] = char.ToUpper(character[0]);
+                    }
+
                     words.Enqueue(new string(character));
                 }
             }
+
             return string.Join(" ", words);
         }
 

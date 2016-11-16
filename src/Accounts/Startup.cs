@@ -1,18 +1,18 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Accounts.Data;
-using Accounts.Models;
-using Accounts.Services;
-using Microsoft.AspNetCore.Mvc.Razor;
-
-namespace Accounts
+﻿namespace Accounts
 {
+    using System;
+    using Data;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+    using Microsoft.AspNetCore.Mvc.Razor;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Models;
+    using Services;
+
     public class Startup
     {
         public Startup(IHostingEnvironment env)
@@ -33,11 +33,10 @@ namespace Accounts
         }
 
         public IConfigurationRoot Configuration { get; }
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureDevelopmentServices(IServiceCollection services)
         {
-
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddSingleton<IConfiguration>(Configuration);
@@ -56,7 +55,7 @@ namespace Accounts
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureProductionServices(IServiceCollection services)
         {
@@ -73,7 +72,7 @@ namespace Accounts
 
             services.AddDistributedMemoryCache();
             services.AddSession();
-            
+
             services.AddMvc()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization();
@@ -105,7 +104,6 @@ namespace Accounts
             app.UseIdentity();
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
-
             app.UseSession();
 
             app.UseMvc(routes =>

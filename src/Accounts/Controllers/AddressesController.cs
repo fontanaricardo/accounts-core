@@ -1,17 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Accounts.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Accounts.Services;
-using Accounts.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace Accounts.Controllers
 {
+    using System.Linq;
+    using Data;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
+    using Models;
+    using Services;
+
     public class AddressesController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
@@ -53,15 +50,18 @@ namespace Accounts.Controllers
         }
 
         // POST: Addresses/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(AddressViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
-            // Verifica se a senha está correta
+            // Verifica se a senha estÃ¡ correta
             var user = _userManager.FindByNameAsync(User.Identity.Name).Result;
             if (!_userManager.CheckPasswordAsync(user, model.Password).Result)
             {
@@ -69,11 +69,11 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
-            // Atualiza o endereço no accounts
+            // Atualiza o endereÃ§o no accounts
             _dbContext.Entry(model.Address).State = EntityState.Modified;
             _dbContext.SaveChanges();
 
-            // Busca todos os dados do usuário para enviar novamente ao serviço do SEI
+            // Busca todos os dados do usuÃ¡rio para enviar novamente ao serviÃ§o do SEI
             Person person = _dbContext.People.Include(p => p.Address).Single(p => p.CPF == User.Identity.Name);
             person.Phones = _dbContext.Phones.Where(p => p.Document == person.CPF).ToList();
 
@@ -86,6 +86,5 @@ namespace Accounts.Controllers
 
             return View(model);
         }
-
     }
 }

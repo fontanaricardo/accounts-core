@@ -1,22 +1,22 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
-using Accounts.Models;
-using Accounts.Services;
-using Accounts.Data;
-using Accounts.Extensions;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Options;
-
-namespace Accounts.Controllers
+﻿namespace Accounts.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Data;
+    using Extensions;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using Models;
+    using Services;
+
     [Authorize]
     public class AccountController : Controller
     {
@@ -45,7 +45,7 @@ namespace Accounts.Controllers
             _dbContext = dbContext;
             _appSettings = appSettings;
         }
-        
+
         [AllowAnonymous]
         public IActionResult Entry(string returnUrl)
         {
@@ -89,11 +89,10 @@ namespace Accounts.Controllers
 
             UriBuilder uriBuilder = new UriBuilder(uri);
             var newUri = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(uri.AbsoluteUri, "token", token.Token);
-            
+
             return Redirect(newUri);
         }
 
-        //
         // GET: /Account/Login
         [AllowAnonymous]
         public IActionResult Login(string returnUrl)
@@ -107,13 +106,12 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            // Tratativa para a exceção System.Web.Mvc.HttpAntiForgeryException, 
+            // Tratativa para a exceção System.Web.Mvc.HttpAntiForgeryException,
             // gerada caso o usuário abra duas abas do navegador com o endereço "/Account/Login",
             // efetue login numa das abas e posteriormente efetue login na outra aba
             if (User.Identity.IsAuthenticated)
@@ -122,10 +120,10 @@ namespace Accounts.Controllers
                 return RedirectToLocal("/");
             }
 
-            // TODO: Verificar como executar esta validação no dotnet core
-            //System.Web.Helpers.AntiForgery.Validate();
-            
-            model.Username = new String(model.Username.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+            /* TODO: Verificar como executar esta validação no dotnet core
+             *System.Web.Helpers.AntiForgery.Validate();
+             */
+            model.Username = new string(model.Username.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
 
             if (model.Username.Length < 12)
             {
@@ -142,7 +140,7 @@ namespace Accounts.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(model.Username);
-            
+
             if (user != null)
             {
                 if (!user.EmailConfirmed)
@@ -155,15 +153,14 @@ namespace Accounts.Controllers
             }
             else
             {
-                ModelState.AddModelError("", "Usuário não cadastrado.");
+                ModelState.AddModelError(string.Empty, "Usuário não cadastrado.");
                 return View(model);
             }
-            
+
             var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, true);
-            
+
             if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
             {
-
                 await _userManager.AddClaimAsync(user, new Claim("FullUserName", user.FullUserName));
                 await _userManager.AddClaimAsync(user, new Claim("EletronicSignatureStatus", user.EletronicSignatureStatus.ToString()));
 
@@ -191,12 +188,11 @@ namespace Accounts.Controllers
             }
             else
             {
-                ModelState.AddModelError("", "Falha ao autenticar, verifique seu usuário e senha.");
+                ModelState.AddModelError(string.Empty, "Falha ao autenticar, verifique seu usuário e senha.");
                 return View(model);
             }
         }
 
-        //
         // GET: /Account/Register
         [HttpGet]
         [AllowAnonymous]
@@ -206,7 +202,6 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // POST: /Account/Register
         [HttpPost]
         [AllowAnonymous]
@@ -221,15 +216,11 @@ namespace Accounts.Controllers
                 if (result.Succeeded)
                 {
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
-                    // Send an email with this link
-                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                    //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
-                    //    $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     _logger.LogInformation(3, "User created a new account with password.");
                     return RedirectToLocal(returnUrl);
                 }
+
                 AddErrors(result);
             }
 
@@ -237,7 +228,6 @@ namespace Accounts.Controllers
             return View(model);
         }
 
-        //
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -250,7 +240,6 @@ namespace Accounts.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        //
         // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
@@ -263,7 +252,6 @@ namespace Accounts.Controllers
             return Challenge(properties, provider);
         }
 
-        //
         // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
@@ -274,7 +262,9 @@ namespace Accounts.Controllers
                 ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
                 return View(nameof(Login));
             }
+
             var info = await _signInManager.GetExternalLoginInfoAsync();
+
             if (info == null)
             {
                 return RedirectToAction(nameof(Login));
@@ -282,15 +272,18 @@ namespace Accounts.Controllers
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+
             if (result.Succeeded)
             {
                 _logger.LogInformation(5, "User logged in with {Name} provider.", info.LoginProvider);
                 return RedirectToLocal(returnUrl);
             }
+
             if (result.RequiresTwoFactor)
             {
                 return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl });
             }
+
             if (result.IsLockedOut)
             {
                 return View("Lockout");
@@ -305,7 +298,6 @@ namespace Accounts.Controllers
             }
         }
 
-        //
         // POST: /Account/ExternalLoginConfirmation
         [HttpPost]
         [AllowAnonymous]
@@ -316,12 +308,15 @@ namespace Accounts.Controllers
             {
                 // Get the information about the user from the external login provider
                 var info = await _signInManager.GetExternalLoginInfoAsync();
+
                 if (info == null)
                 {
                     return View("ExternalLoginFailure");
                 }
+
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user);
+
                 if (result.Succeeded)
                 {
                     result = await _userManager.AddLoginAsync(user, info);
@@ -332,6 +327,7 @@ namespace Accounts.Controllers
                         return RedirectToLocal(returnUrl);
                     }
                 }
+
                 AddErrors(result);
             }
 
@@ -348,16 +344,18 @@ namespace Accounts.Controllers
             {
                 return View("Error");
             }
+
             var user = await _userManager.FindByIdAsync(userId);
+
             if (user == null)
             {
                 return View("Error");
             }
+
             var result = await _userManager.ConfirmEmailAsync(user, code);
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
-        //
         // GET: /Account/ForgotPassword
         [HttpGet]
         [AllowAnonymous]
@@ -366,7 +364,6 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // POST: /Account/ForgotPassword
         [HttpPost]
         [AllowAnonymous]
@@ -381,18 +378,19 @@ namespace Accounts.Controllers
                     TempData["error"] = "Dados incorretos! Confira os dados de acesso.";
                     return View(model);
                 }
-                
+
                 string code = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Scheme);
-                await _emailSender.SendEmailAsync(user.Email, "Prefeitura de Joinville - Redefinir senha",
-                $"Prefeitura de Joinville\n\nAcesse a URL abaixo para Redefinir senha: {callbackUrl}");
+                await _emailSender.SendEmailAsync(
+                    user.Email,
+                    "Prefeitura de Joinville - Redefinir senha",
+                    $"Prefeitura de Joinville\n\nAcesse a URL abaixo para Redefinir senha: {callbackUrl}");
                 return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             return View(model);
         }
 
-        //
         // GET: /Account/ForgotPasswordConfirmation
         [HttpGet]
         [AllowAnonymous]
@@ -401,7 +399,6 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // GET: /Account/ResetPassword
         [HttpGet]
         [AllowAnonymous]
@@ -410,19 +407,19 @@ namespace Accounts.Controllers
             return code == null ? View("Error") : View();
         }
 
-        //
         // POST: /Account/ResetPassword
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            model.Document = new String(model.Document.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+            model.Document = new string(model.Document.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
 
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
@@ -449,7 +446,6 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // GET: /Account/ResetPasswordConfirmation
         [HttpGet]
         [AllowAnonymous]
@@ -458,7 +454,6 @@ namespace Accounts.Controllers
             return View();
         }
 
-        //
         // GET: /Account/SendCode
         [HttpGet]
         [AllowAnonymous]
@@ -469,12 +464,12 @@ namespace Accounts.Controllers
             {
                 return View("Error");
             }
+
             var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
             var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
             return View(new Models.AccountViewModels.SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
-        //
         // POST: /Account/SendCode
         [HttpPost]
         [AllowAnonymous]
@@ -512,7 +507,6 @@ namespace Accounts.Controllers
             return RedirectToAction(nameof(VerifyCode), new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
         }
 
-        //
         // GET: /Account/VerifyCode
         [HttpGet]
         [AllowAnonymous]
@@ -524,10 +518,10 @@ namespace Accounts.Controllers
             {
                 return View("Error");
             }
+
             return View(new Models.AccountViewModels.VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
-        //
         // POST: /Account/VerifyCode
         [HttpPost]
         [AllowAnonymous]
@@ -547,6 +541,7 @@ namespace Accounts.Controllers
             {
                 return RedirectToLocal(model.ReturnUrl);
             }
+
             if (result.IsLockedOut)
             {
                 _logger.LogWarning(7, "User account locked out.");
@@ -559,18 +554,15 @@ namespace Accounts.Controllers
             }
         }
 
-
-        //
         // GET: /Account/RegisterPerson
         [AllowAnonymous]
         public ActionResult RegisterPerson()
         {
-            string[] phoneNumbers = { "" };
+            string[] phoneNumbers = { string.Empty };
             ViewBag.Phones = phoneNumbers;
             return View();
         }
 
-        //
         // POST: /Account/RegisterPerson
         [HttpPost]
         [AllowAnonymous]
@@ -585,7 +577,10 @@ namespace Accounts.Controllers
             model.Person.Email = model.Email;
             TryValidateModel(model);
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             try
             {
@@ -638,9 +633,9 @@ namespace Accounts.Controllers
 
                         return RedirectToAction("Login", "Account");
                     }
+
                     AddLocalizedErrors(result, user);
                 }
-
             }
             catch (ArgumentException ex)
             {
@@ -649,18 +644,16 @@ namespace Accounts.Controllers
 
             return View(model);
         }
-        
-        //
+
         // GET: /Account/RegisterCompany
         [AllowAnonymous]
         public ActionResult RegisterCompany()
         {
-            string[] phoneNumbers = { "" };
+            string[] phoneNumbers = { string.Empty };
             ViewBag.Phones = phoneNumbers;
             return View();
         }
 
-        //
         // POST: /Account/RegisterCompany
         [HttpPost]
         [AllowAnonymous]
@@ -671,7 +664,10 @@ namespace Accounts.Controllers
             string[] phoneNumbers = Request.Form["Phone"].Distinct().ToArray();
             ViewBag.Phones = phoneNumbers;
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             try
             {
@@ -714,9 +710,9 @@ namespace Accounts.Controllers
 
                         return RedirectToAction("Login", "Account");
                     }
+
                     AddLocalizedErrors(result, user);
                 }
-
             }
             catch (ArgumentException ex)
             {
@@ -726,23 +722,8 @@ namespace Accounts.Controllers
             return View(model);
         }
 
-        private async Task EmailConfirmation(ApplicationUser user)
-        {
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var callbackUrl = Url.Action(
-               "ConfirmEmail", "Account",
-               new { userId = user.Id, code = code },
-               protocol: Request.Scheme);
-
-            string operation = "Confirmação do e-mail";
-            
-            await _emailSender.SendEmailAsync(user.Email, "Prefeitura de Joinville - " + operation,
-                $"Prefeitura de Joinville\n\nAcesse a URL abaixo para {operation}: {callbackUrl}");
-
-        }
-        
         [AllowAnonymous]
-        public async Task<ActionResult> SendEmailConfirmation()
+        public ActionResult SendEmailConfirmation()
         {
             return View();
         }
@@ -752,8 +733,8 @@ namespace Accounts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SendEmailConfirmation(ConfirmationEmailViewModel model)
         {
-            model.CPF = new String(model.CPF.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
-            
+            model.CPF = new string(model.CPF.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
+
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.CPF);
@@ -782,18 +763,35 @@ namespace Accounts.Controllers
                 }
             }
 
-
             return View(model);
         }
 
-        #region Helpers
+        private async Task EmailConfirmation(ApplicationUser user)
+        {
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callbackUrl = Url.Action(
+               "ConfirmEmail",
+               "Account",
+               new { userId = user.Id, code = code },
+               protocol: Request.Scheme);
 
-        //TODO: Implementar método para pessoa jurídica
+            string operation = "Confirmação do e-mail";
+
+            await _emailSender.SendEmailAsync(
+                user.Email,
+                "Prefeitura de Joinville - " + operation,
+                $"Prefeitura de Joinville\n\nAcesse a URL abaixo para {operation}: {callbackUrl}");
+        }
+
+        // TODO: Implementar método para pessoa jurídica
         private void UpdateEletronicSignature(Models.LoginViewModel model, AppSettings appSettings)
         {
             var person = _dbContext.People.SingleOrDefault(p => p.CPF == model.Username);
 
-            if (person == null) return;
+            if (person == null)
+            {
+                return;
+            }
 
             person.UpdateEletronicSignatureStatus(appSettings);
             var user = _userManager.FindByNameAsync(model.Username).Result;
@@ -827,20 +825,21 @@ namespace Accounts.Controllers
                 return Redirect("/");
             }
         }
-        
+
         private void AddLocalizedErrors(IdentityResult result, ApplicationUser user)
         {
             foreach (var error in result.Errors)
             {
                 var localizedError = error.Description;
-                string userName = "";
-                string email = "";
+                string userName = string.Empty;
+                string email = string.Empty;
                 if (user != null)
                 {
                     userName = user.UserName;
                     email = user.Email;
                 }
-                //password errors
+
+                // password errors
                 localizedError = localizedError.Replace("Captcha answer cannot be empty.", "Captcha não pode ficar em branco.");
                 localizedError = localizedError.Replace("Incorrect captcha answer.", "Captcha incorreto.");
                 localizedError = localizedError.Replace("Incorrect password.", "Senha incorreta.");
@@ -850,15 +849,12 @@ namespace Accounts.Controllers
                 localizedError = localizedError.Replace("Passwords must have at least one digit ('0'-'9').", "A senha deve ter pelo menos um dígito.");
                 localizedError = localizedError.Replace("Phone number is invalid.", "Número de telefone inválido.");
 
-                //register errors
+                // register errors
                 localizedError = localizedError.Replace("Name " + userName + " is already taken.", "Usuário {0} já está registrado.".Replace("{0}", userName));
                 localizedError = localizedError.Replace("Email '" + email + "' is already taken.", "E-mail {0} já está registrado.".Replace("{0}", email));
 
-                ModelState.AddModelError("", localizedError);
+                ModelState.AddModelError(string.Empty, localizedError);
             }
         }
-
-
-        #endregion
     }
 }

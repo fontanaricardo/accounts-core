@@ -1,11 +1,9 @@
-﻿using Accounts.Models;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Acessos do usuário aos aplicativos e sua situação
     /// </summary>
@@ -23,7 +21,7 @@ namespace Accounts.Models
         /// </summary>
         [Display(Name="Situação")]
         public AccessStatus Status { get; private set; }
-        
+
         [Display(Name="Termos de uso aceitos")]
         public bool? AcceptedTerms { get; set; }
 
@@ -73,11 +71,13 @@ namespace Accounts.Models
         [DataType(DataType.MultilineText)]
         [Display(Name = "Motivo da negação de acesso")]
         public string DeniedCause { get; private set; }
-        
+
         /// <summary>
         /// Documento do usuário (CPF ou CNPJ)
         /// </summary>
-        [Required, MaxLength(14), MinLength(11)]
+        [Required]
+        [MaxLength(14)]
+        [MinLength(11)]
         [Display(Name = "Documento do usuário (CPF ou CNPJ)")]
         public string Document { get; set; }
 
@@ -87,54 +87,6 @@ namespace Accounts.Models
         [Required]
         public Application Application { get; set; }
 
-        #region private methods
-
-        /// <summary>
-        /// Atualiza os campos de timestamp ao persistir o objeto
-        /// </summary>
-        private void UpdateTimeStamp()
-        {
-            UpdatedAt = DateTime.Now;
-            CreatedAt = AccessId == 0 ? DateTime.Now : CreatedAt;
-        }
-
-        /// <summary>
-        /// Caso status do acesso seja diferente de aprovado ou negado, 
-        /// este método alimenta o mesmo conforme as características da aplicação.
-        /// </summary>
-        /// <exception cref="System.NullReferenceException">Exceção disparada caso a propriedade Application esteja nula</exception>
-        private void UpdateStatus()
-        {
-            if (Status != AccessStatus.Performed)
-            {
-                return;
-            }
-
-            if (Application == null)
-            {
-                throw new NullReferenceException("Este acesso não possui aplicação relacionada.");
-            }
-
-            if (Application.RequiresApproval)
-            {
-                Status = AccessStatus.PendingRequest;
-            }
-            else
-            {
-                Status = AccessStatus.Performed;
-            }
-        }
-
-        /// <summary>
-        /// Atualiza a coluna accepted terms conforme dados da aplicação
-        /// </summary>
-        private void UpdateAcceptedTerms()
-        {
-            if (AcceptedTerms == true) return;
-            else if (string.IsNullOrWhiteSpace(Application.UseTerms)) AcceptedTerms = null;
-            else AcceptedTerms = false;
-        }
-        
         IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         {
             var results = new List<ValidationResult>();
@@ -143,7 +95,7 @@ namespace Accounts.Models
             {
                 results.Add(new ValidationResult("Não é possível definir o acesso de uma aplicação desabilitada."));
             }
-            
+
             if (results.Count == 0)
             {
                 UpdateTimeStamp();
@@ -153,10 +105,6 @@ namespace Accounts.Models
 
             return results;
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         /// Aprova o acesso de um usuário a um determinado aplicativo
@@ -177,7 +125,7 @@ namespace Accounts.Models
             {
                 throw new InvalidOperationException("Não é possível aprovar acessos com situação diferente de requerido.");
             }
-            
+
             ApprovedBy = login;
             ApprovedAt = DateTime.Now;
             Status = AccessStatus.Approved;
@@ -251,44 +199,60 @@ namespace Accounts.Models
 
             return true;
         }
-        
-        #endregion
-    }
-
-    /// <summary>
-    /// Status da solicitação de acesso feita pelo usuário
-    /// </summary>
-    public enum AccessStatus
-    {
-        /// <summary>
-        /// O usuário efetuou acesso a uma aplicação que não possui nenhum tipo de restrição
-        /// </summary>
-        [Display(Name = "Efetuado")]
-        Performed,
 
         /// <summary>
-        /// O usuário ainda não efetuou a requisição de acesso a uma aplicação com restrição de acesso
+        /// Atualiza os campos de timestamp ao persistir o objeto
         /// </summary>
-        [Display(Name = "Pendente de requisição de acesso")]
-        PendingRequest,
+        private void UpdateTimeStamp()
+        {
+            UpdatedAt = DateTime.Now;
+            CreatedAt = AccessId == 0 ? DateTime.Now : CreatedAt;
+        }
 
         /// <summary>
-        /// O acesso foi requisitado pelo usuário, porém ainda não foi aprovado
+        /// Caso status do acesso seja diferente de aprovado ou negado,
+        /// este método alimenta o mesmo conforme as características da aplicação.
         /// </summary>
-        [Display(Name = "Acesso requisitado")]
-        Requested,
-        
-        /// <summary>
-        /// O acesso foi aprovado por um funcionário
-        /// </summary>
-        [Display(Name = "Aprovado")]
-        Approved,
+        /// <exception cref="System.NullReferenceException">Exceção disparada caso a propriedade Application esteja nula</exception>
+        private void UpdateStatus()
+        {
+            if (Status != AccessStatus.Performed)
+            {
+                return;
+            }
+
+            if (Application == null)
+            {
+                throw new NullReferenceException("Este acesso não possui aplicação relacionada.");
+            }
+
+            if (Application.RequiresApproval)
+            {
+                Status = AccessStatus.PendingRequest;
+            }
+            else
+            {
+                Status = AccessStatus.Performed;
+            }
+        }
 
         /// <summary>
-        /// O acesso foi negado ao usuário por um funcionário da prefeitura, 
-        /// para este caso deve ser preenchido o campo de motivo da negação
+        /// Atualiza a coluna accepted terms conforme dados da aplicação
         /// </summary>
-        [Display(Name = "Negado")]
-        Denied
+        private void UpdateAcceptedTerms()
+        {
+            if (AcceptedTerms == true)
+            {
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(Application.UseTerms))
+            {
+                AcceptedTerms = null;
+            }
+            else
+            {
+                AcceptedTerms = false;
+            }
+        }
     }
 }

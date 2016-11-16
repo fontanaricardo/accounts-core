@@ -45,7 +45,11 @@
     },
     "Microsoft.AspNetCore.Session": "1.0.0",
     "Microsoft.Framework.Caching.Memory": "1.0.0-beta7",
-    "MailKit": "1.10.0"
+    "MailKit": "1.10.0",
+    "StyleCop.Analyzers": {
+      "version": "1.0.0",
+      "type": "build"
+    }
   },
 
   "tools": {
@@ -73,7 +77,8 @@
 
   "buildOptions": {
     "emitEntryPoint": true,
-    "preserveCompilationContext": true
+    "preserveCompilationContext": true,
+    "warningsAsErrors": true
   },
 
   "runtimeOptions": {

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
     /// <summary>
     /// Representa a aplicação para a qual o usuário irá solicitar acesso
     /// </summary>
@@ -63,6 +63,20 @@ namespace Accounts.Models
         public ICollection<Access> Accesses { get; set; }
 
         /// <summary>
+        /// Data de criação do registro, alimentado automaticamente na criação do registro.
+        /// </summary>
+        [Required]
+        [Display(Name = "Criado em")]
+        public DateTime CreatedAt { get; private set; }
+
+        /// <summary>
+        /// Data de atualização do registro, atualizado automaticamente na atualização do registro.
+        /// </summary>
+        [Required]
+        [Display(Name = "Atualizado em")]
+        public DateTime UpdatedAt { get; private set; }
+
+        /// <summary>
         /// Verifica se a aplição é destinada ao tipo do usuário (pessoa física ou jurídica)
         /// </summary>
         /// <param name="userDocument">CPF ou CNPJ do usuário</param>
@@ -72,7 +86,7 @@ namespace Accounts.Models
         {
             bool isPerson = userDocument.Length <= 11;
             message = null;
-            
+
             if (!Enabled)
             {
                 message = "A aplicação " + ApplicationName + " está desabilitada.";
@@ -91,20 +105,18 @@ namespace Accounts.Models
 
             return true;
         }
-        
-        /// <summary>
-        /// Data de criação do registro, alimentado automaticamente na criação do registro.
-        /// </summary>
-        [Required]
-        [Display(Name = "Criado em")]
-        public DateTime CreatedAt { get; private set; }
 
-        /// <summary>
-        /// Data de atualização do registro, atualizado automaticamente na atualização do registro.
-        /// </summary>
-        [Required]
-        [Display(Name = "Atualizado em")]
-        public DateTime UpdatedAt { get; private set; }
+        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            var results = new List<ValidationResult>();
+
+            if (results.Count == 0)
+            {
+                UpdateTimeStamp();
+            }
+
+            return results;
+        }
 
         /// <summary>
         /// Atualiza os campos de timestamp ao persistir o objeto
@@ -114,30 +126,5 @@ namespace Accounts.Models
             UpdatedAt = DateTime.Now;
             CreatedAt = ApplicationId == 0 ? DateTime.Now : CreatedAt;
         }
-
-        IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        {
-            var results = new List<ValidationResult>();
-            
-            if (results.Count == 0)
-            {
-                UpdateTimeStamp();
-            }
-
-            return results;
-        }
-
-    }
-
-    public enum UserType
-    {
-        [Display(Name = "Todos")]
-        All,
-
-        [Display(Name = "Pessoas")]
-        People,
-
-        [Display(Name = "Empresas")]
-        Companies
     }
 }

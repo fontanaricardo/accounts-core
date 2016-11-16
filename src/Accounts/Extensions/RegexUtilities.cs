@@ -1,24 +1,25 @@
-﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
-
-namespace Accounts.Extensions
+﻿namespace Accounts.Extensions
 {
+    using System;
+    using System.Globalization;
+    using System.Text.RegularExpressions;
+
     public class RegexUtilities
     {
-        bool invalid = false;
+        private bool invalid = false;
 
         public bool IsValidEmail(string strIn)
         {
             invalid = false;
-            if (String.IsNullOrEmpty(strIn))
+            if (string.IsNullOrEmpty(strIn))
+            {
                 return false;
+            }
 
             // Use IdnMapping class to convert Unicode domain names.
             try
             {
-                strIn = Regex.Replace(strIn, @"(@)(.+)$", this.DomainMapper,
-                                      RegexOptions.None, TimeSpan.FromMilliseconds(200));
+                strIn = Regex.Replace(strIn, @"(@)(.+)$", this.DomainMapper, RegexOptions.None, TimeSpan.FromMilliseconds(200));
             }
             catch (RegexMatchTimeoutException)
             {
@@ -26,15 +27,18 @@ namespace Accounts.Extensions
             }
 
             if (invalid)
+            {
                 return false;
+            }
 
             // Return true if strIn is in valid e-mail format.
             try
             {
-                return Regex.IsMatch(strIn,
-                      @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
-                      @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
-                      RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+                return Regex.IsMatch(
+                    strIn,
+                    @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" + @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                    RegexOptions.IgnoreCase,
+                    TimeSpan.FromMilliseconds(250));
             }
             catch (RegexMatchTimeoutException)
             {
@@ -56,6 +60,7 @@ namespace Accounts.Extensions
             {
                 invalid = true;
             }
+
             return match.Groups[1].Value + domainName;
         }
     }

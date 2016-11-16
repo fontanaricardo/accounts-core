@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text;
-
-namespace Accounts.Models
+﻿namespace Accounts.Models
 {
+    using System.ComponentModel.DataAnnotations;
+    using System.Text;
+
     public class Address
     {
         [Key]
@@ -12,11 +12,13 @@ namespace Accounts.Models
         [Display(Name = "CEP")]
         public int? ZipCode { get; set; }
 
-        [Required, MaxLength(200)]
+        [Required]
+        [MaxLength(200)]
         [Display(Name = "Bairro")]
         public string District { get; set; }
 
-        [Required, MaxLength(200)]
+        [Required]
+        [MaxLength(200)]
         [Display(Name = "Cidade")]
         public string City { get; set; }
 
@@ -25,7 +27,8 @@ namespace Accounts.Models
         [Display(Name = "Complemento")]
         public string Complement { get; set; }
 
-        [Required, MaxLength(2000)]
+        [Required]
+        [MaxLength(2000)]
         [Display(Name = "Logradouro")]
         public string Street { get; set; }
 
@@ -52,7 +55,7 @@ namespace Accounts.Models
             sb.Append("CEP: ");
             sb.AppendLine(ZipCode == null ? string.Empty : ZipCode.ToString());
 
-            sb.Append("Logradouro: " );
+            sb.Append("Logradouro: ");
             sb.AppendLine(Street);
 
             sb.Append("Número: ");

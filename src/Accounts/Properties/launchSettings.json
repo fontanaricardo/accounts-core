@@ -12,7 +12,21 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "MailServer": "mail.joinville.sc.gov.br",
+        "Anexo": "293",
+        "Formulario": "390",
+        "TipoProcedimento": "5",
+        "MailPassword": "Purchase QuickBird1",
+        "MailPort": "25",
+        "VirtualUrl": "http://virtual.pmjlle.joinville.sc.gov.br/",
+        "MailUser": "m23569",
+        "Unidade": "110001429",
+        "STORAGE_CONNECTION_STRING": "Data Source=pmj-webdev02;Initial Catalog=AccountsCore;User ID=Accounts;Password=Accounts;",
+        "Servico": "PE",
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "UrlSei": "http://seihomologacao.pmjlle.joinville.sc.gov.br",
+        "Token": "d5ea60e9e8add3d!db796adfg36231$@f7837b36288f",
+        "SeiEncoding": "ISO-8859-1"
       }
     },
     "Accounts": {

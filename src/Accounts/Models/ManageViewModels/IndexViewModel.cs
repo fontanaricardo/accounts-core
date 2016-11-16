@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-
-namespace Accounts.Models.ManageViewModels
+﻿namespace Accounts.Models.ManageViewModels
 {
+    using System.Collections.Generic;
+    using Microsoft.AspNetCore.Identity;
+
     public class IndexViewModel
     {
         public bool HasPassword { get; set; }
@@ -21,6 +18,5 @@ namespace Accounts.Models.ManageViewModels
         public EletronicSignatureStatus EletronicSignatureStatus { get; set; }
 
         public string LinkSeiProtocol { get; set; }
-
     }
 }
