@@ -120,14 +120,20 @@
                 return RedirectToLocal("/");
             }
 
+            return await LoginConfirmed(model, returnUrl);
+        }
+
+        // POST: /Account/LoginConfirmed
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginConfirmed(LoginViewModel model, string returnUrl)
+        {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            /* TODO: Verificar como executar esta validação no dotnet core
-             *System.Web.Helpers.AntiForgery.Validate();
-             */
             model.Username = new string(model.Username.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
 
             if (model.Username.Length < 12)
