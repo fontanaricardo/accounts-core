@@ -120,6 +120,11 @@
                 return RedirectToLocal("/");
             }
 
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             /* TODO: Verificar como executar esta validação no dotnet core
              *System.Web.Helpers.AntiForgery.Validate();
              */
@@ -132,11 +137,6 @@
             else
             {
                 model.Username = model.Username.PadLeft(14, '0');
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
             }
 
             var user = await _userManager.FindByNameAsync(model.Username);
