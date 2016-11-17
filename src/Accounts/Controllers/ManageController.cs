@@ -76,6 +76,10 @@
                 EletronicSignatureStatus = person.EletronicSignatureStatus,
                 LinkSeiProtocol = person.LinkSeiProtocol
             };
+
+            ViewBag.Decree = _appSettings.Value.Decree;
+            ViewBag.Instruction = _appSettings.Value.Instruction;
+
             return View(model);
         }
 

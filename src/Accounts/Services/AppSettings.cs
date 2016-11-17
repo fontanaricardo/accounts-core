@@ -29,5 +29,9 @@
         public string MailUser { get; set; }
 
         public string MailPassword { get; set; }
+
+        public string Decree { get; set; }
+
+        public string Instruction { get; set; }
     }
 }
