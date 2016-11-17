@@ -120,9 +120,20 @@
                 return RedirectToLocal("/");
             }
 
-            /* TODO: Verificar como executar esta validação no dotnet core
-             *System.Web.Helpers.AntiForgery.Validate();
-             */
+            return await LoginConfirmed(model, returnUrl);
+        }
+
+        // POST: /Account/LoginConfirmed
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginConfirmed(LoginViewModel model, string returnUrl)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             model.Username = new string(model.Username.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
 
             if (model.Username.Length < 12)
@@ -132,11 +143,6 @@
             else
             {
                 model.Username = model.Username.PadLeft(14, '0');
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
             }
 
             var user = await _userManager.FindByNameAsync(model.Username);

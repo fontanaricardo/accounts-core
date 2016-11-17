@@ -28,14 +28,14 @@
         /// <summary>
         /// Data de criação do registro, alimentado automaticamente na criação do registro.
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Criado em")]
         public DateTime CreatedAt { get; private set; }
 
         /// <summary>
         /// Data de atualização do registro, atualizado automaticamente na atualização do registro.
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Atualizado em")]
         public DateTime UpdatedAt { get; private set; }
 
@@ -75,7 +75,7 @@
         /// <summary>
         /// Documento do usuário (CPF ou CNPJ)
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(14)]
         [MinLength(11)]
         [Display(Name = "Documento do usuário (CPF ou CNPJ)")]
@@ -84,7 +84,7 @@
         /// <summary>
         /// Aplicação relacionada relacionada ao acesso
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public Application Application { get; set; }
 
         IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)

@@ -4,10 +4,10 @@
 
     public class VerifyPhoneNumberViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string Code { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Phone]
         [Display(Name = "Phone number")]
         public string PhoneNumber { get; set; }

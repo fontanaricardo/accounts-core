@@ -4,7 +4,7 @@
 
     public class ExternalLoginConfirmationViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [EmailAddress]
         public string Email { get; set; }
     }

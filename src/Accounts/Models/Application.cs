@@ -34,14 +34,14 @@
         /// <summary>
         /// Define se o acesso deve ser aprovado internamente
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Requer aprovação")]
         public bool RequiresApproval { get; set; }
 
         /// <summary>
         /// Caso esteja desabilitada, não é possível acessar a aplicação
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Habilitada")]
         public bool Enabled { get; set; }
 
@@ -65,14 +65,14 @@
         /// <summary>
         /// Data de criação do registro, alimentado automaticamente na criação do registro.
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Criado em")]
         public DateTime CreatedAt { get; private set; }
 
         /// <summary>
         /// Data de atualização do registro, atualizado automaticamente na atualização do registro.
         /// </summary>
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "Atualizado em")]
         public DateTime UpdatedAt { get; private set; }
 

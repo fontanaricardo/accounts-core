@@ -19,7 +19,7 @@
         [Key]
         public int PersonID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(1500)]
         [JsonProperty("nome")]
         [Display(Name = "Nome")]
@@ -41,30 +41,30 @@
 
         [Display(Name = "CPF")]
         [JsonProperty("cpf")]
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(11)]
         [MinLength(11)]
         public string CPF { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "E-mail")]
         [JsonProperty("email")]
         public string Email { get; set; }
 
         [Display(Name = "Identidade")]
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(500)]
         [JsonProperty("rg")]
         public string RG { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(2000)]
         [Display(Name = "Órgão expedidor")]
         [JsonProperty("orgao_expedidor")]
         public string Dispatcher { get; set; }
 
         [JsonIgnore]
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [ForeignKey("Address")]
         public int AddressID { get; set; }
 

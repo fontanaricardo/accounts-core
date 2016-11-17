@@ -23,7 +23,7 @@
         [Display(Name = "Documento com foto")]
         public IFormFile Document { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [DataType(DataType.Password)]
         [Display(Name = "Senha")]
         public string Password { get; set; }

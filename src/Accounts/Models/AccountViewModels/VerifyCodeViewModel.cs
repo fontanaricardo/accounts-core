@@ -4,10 +4,10 @@
 
     public class VerifyCodeViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string Provider { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string Code { get; set; }
 
         public string ReturnUrl { get; set; }
