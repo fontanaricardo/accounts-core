@@ -16,17 +16,17 @@
         public int CompanyID { get; set; }
 
         [Display(Name = "CNPJ")]
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(14)]
         [MinLength(14)]
         [CNPJ]
         public string CNPJ { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Display(Name = "E-mail")]
         public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(2000)]
         [Display(Name = "Nome fantasia")]
         public string Name
@@ -45,7 +45,7 @@
             }
         }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [MaxLength(2000)]
         [Display(Name = "Razão social")]
         public string CompanyName
@@ -67,7 +67,7 @@
         [Display(Name = "Inscrição municipal")]
         public string MunicipalRegistration { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [ForeignKey("Address")]
         public int AddressID { get; set; }
 

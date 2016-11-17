@@ -31,19 +31,19 @@
         [Key]
         public int TokenID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string Token { get; private set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string Domain { get; private set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public DateTime CreatedAt { get; private set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public DateTime Expiration { get; private set; }
 
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         public string UserName { get; private set; }
 
         public DateTime? UsedAt { get; private set; }

@@ -4,7 +4,7 @@
 
     public class ForgotPasswordViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [EmailAddress]
         public string Email { get; set; }
     }

@@ -8,7 +8,7 @@
 
     public class AddPhoneNumberViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Este campo é obrigatório.")]
         [Phone]
         [Display(Name = "Phone number")]
         public string PhoneNumber { get; set; }
