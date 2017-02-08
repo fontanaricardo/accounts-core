@@ -1,6 +1,7 @@
 ﻿namespace Accounts
 {
     using System;
+    using System.IO;
     using Data;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -85,8 +86,7 @@
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            SetLog(env, loggerFactory);
 
             if (env.IsDevelopment())
             {
@@ -139,6 +139,33 @@
                 // User settings
                 options.User.RequireUniqueEmail = true;
             });
+        }
+
+        /// <summary>
+        /// Add console logs.
+        /// Set the log folder only in production, to save log in files.
+        /// </summary>
+        /// <remarks>
+        /// In production, if the folder "logs" not exists, it will be created.
+        /// </remarks>
+        /// <param name="env">Enviroment object definitions.</param>
+        /// <param name="loggerFactory">Logger factory service.</param>
+        private void SetLog(IHostingEnvironment env, ILoggerFactory loggerFactory)
+        {
+            loggerFactory.AddConsole();
+            if (env.IsProduction())
+            {
+                var appFilesPath = Path.GetDirectoryName(Environment.GetEnvironmentVariable("CERT_PATH"));
+                string logsPath = Path.Combine(appFilesPath, "logs");
+                bool exists = System.IO.Directory.Exists(logsPath);
+
+                if (!exists)
+                {
+                    System.IO.Directory.CreateDirectory(logsPath);
+                }
+
+                loggerFactory.AddFile(Path.Combine(logsPath, "{Date}.txt"));
+            }
         }
     }
 }
