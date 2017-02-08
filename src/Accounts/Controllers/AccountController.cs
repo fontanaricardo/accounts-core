@@ -111,7 +111,7 @@
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
         {
-            // Tratativa para a exceção System.Web.Mvc.HttpAntiForgeryException,
+            // Tratativa para a exceção HttpAntiForgeryException,
             // gerada caso o usuário abra duas abas do navegador com o endereço "/Account/Login",
             // efetue login numa das abas e posteriormente efetue login na outra aba
             if (User.Identity.IsAuthenticated)
