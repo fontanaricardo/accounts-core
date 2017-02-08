@@ -2,6 +2,7 @@ namespace Accounts.Controllers
 {
     using System.Linq;
     using Data;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace Accounts.Controllers
     using Models;
     using Services;
 
+    [Authorize]
     public class PeopleController : Controller
     {
         private readonly ApplicationDbContext _dbContext;
