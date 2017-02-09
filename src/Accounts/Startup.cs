@@ -155,7 +155,7 @@
             loggerFactory.AddConsole();
             if (env.IsProduction())
             {
-                string appPath = Environment.GetEnvironmentVariable("OptPath");
+                string appPath = Environment.GetEnvironmentVariable("OptPath") ?? "/opt/accounts-core/";
                 string logsPath = Path.Combine(appPath, "logs");
                 bool exists = System.IO.Directory.Exists(logsPath);
 
