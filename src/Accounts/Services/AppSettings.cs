@@ -33,5 +33,7 @@
         public string Decree { get; set; }
 
         public string Instruction { get; set; }
+
+        public string SignDocumentLink { get; set; }
     }
 }

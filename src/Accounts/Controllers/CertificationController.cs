@@ -3,6 +3,7 @@ namespace Accounts.Controllers
     using System;
     using System.Linq;
     using Data;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace Accounts.Controllers
     using Models;
     using Services;
 
+    [Authorize]
     public class CertificationController : Controller
     {
         private readonly ApplicationDbContext _dbContext;

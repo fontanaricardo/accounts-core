@@ -1,13 +1,22 @@
-stages:  
+stages:
+  - linter
+  - test
   - build
   - deploy
 
 style_cop:
-  stage: build
+  stage: linter
   tags:
     - docker-ci
   script:
     - docker run --rm -v $PWD:/app microsoft/dotnet:1.0.0-preview2-sdk /app/linter.sh
+
+tests:
+    stage: test
+    tags:
+        - docker-ci
+    script:
+        - docker run --rm --env-file /opt/environments/ricardo.fontana/accounts-core.env -v $PWD:/app microsoft/dotnet:1.1.0-sdk-projectjson /app/test-unit.sh
 
 build_image:
   stage: build

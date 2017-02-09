@@ -9,6 +9,8 @@ services:
     restart: "always"
     ports:
       - "10003:80"
+    volumes:
+      - /opt/accounts-core:/opt/accounts-core
     environment:
       - STORAGE_CONNECTION_STRING
       - VIRTUAL_HOST
@@ -28,3 +30,6 @@ services:
       - MailPort
       - MailUser
       - MailPassword
+      - Decree
+      - Instruction
+      - SignDocumentLink
