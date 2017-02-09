@@ -155,8 +155,8 @@
             loggerFactory.AddConsole();
             if (env.IsProduction())
             {
-                var appFilesPath = Path.GetDirectoryName(Environment.GetEnvironmentVariable("CERT_PATH"));
-                string logsPath = Path.Combine(appFilesPath, "logs");
+                string appPath = Environment.GetEnvironmentVariable("OptPath");
+                string logsPath = Path.Combine(appPath, "logs");
                 bool exists = System.IO.Directory.Exists(logsPath);
 
                 if (!exists)
