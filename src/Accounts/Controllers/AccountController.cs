@@ -102,6 +102,7 @@
                 Response.Cookies.Append("UrlReferer", returnUrl);
             }
 
+            ViewBag.SignDocumentLink = _appSettings.Value.SignDocumentLink;
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }

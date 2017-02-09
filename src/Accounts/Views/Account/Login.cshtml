@@ -63,6 +63,15 @@
 
             <br />
 
+            <h4>Assinatura eletrônica</h4>
+            <hr />
+
+            <p>
+                <a href="@ViewBag.SignDocumentLink">Assinatura eletrônica</a>
+            </p>
+            
+            <br />
+
             <h4>Problemas com a senha?</h4>
             <hr />
 
@@ -72,7 +81,7 @@
             <p>
                 @Html.ActionLink("Confirmação do email", "SendEmailConfirmation")
             </p>
-            
+
             @*
 				@Html.Partial("_ExternalLoginsListPartial", new ExternalLoginListViewModel { ReturnUrl = ViewBag.ReturnUrl })
 			*@

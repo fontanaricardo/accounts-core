@@ -32,3 +32,4 @@ services:
       - MailPassword
       - Decree
       - Instruction
+      - SignDocumentLink
