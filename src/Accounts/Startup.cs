@@ -16,8 +16,12 @@
 
     public class Startup
     {
+        private readonly IHostingEnvironment _environment;
+
         public Startup(IHostingEnvironment env)
         {
+            _environment = env;
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -36,35 +40,22 @@
         public IConfigurationRoot Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureDevelopmentServices(IServiceCollection services)
-        {
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
-
-            services.AddSingleton<IConfiguration>(Configuration);
-
-            // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-            IdentityConfiguration(services);
-
-            services.AddDistributedMemoryCache();
-            services.AddSession();
-            services.AddMvc();
-
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
-        }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureProductionServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<AppSettings>(Configuration);
 
             services.AddSingleton<IConfiguration>(Configuration);
 
-            var connection = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            string connection = string.Empty;
+
+            if (_environment.IsDevelopment())
+            {
+                connection = Configuration["StorageConnectionString"];
+            }
+            else
+            {
+                connection = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            }
 
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connection), ServiceLifetime.Scoped);
@@ -153,6 +144,8 @@
         private void SetLog(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole();
+            loggerFactory.AddDebug();
+
             if (env.IsProduction())
             {
                 string appPath = Environment.GetEnvironmentVariable("OptPath") ?? "/opt/accounts-core/";
