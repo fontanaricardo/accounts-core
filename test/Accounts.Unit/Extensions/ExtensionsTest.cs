@@ -99,5 +99,41 @@ namespace Accounts.Unit.Extensions
 
             Assert.True(diff.Any(d => d.Item1 == "PersonID"));
         }
+
+        [TheoryAttribute]
+        [InlineDataAttribute("SSPSC", "SSP-SC")]
+        [InlineDataAttribute("", "SSPSC")]
+        [InlineDataAttribute("SSPSC", "")]
+        [InlineDataAttribute(null, "SSPSC")]
+        [InlineDataAttribute("SSPSC", null)]
+        public void ShouldNotGetIgnoredProperties(string oldValue, string newValue)
+        {
+            Person oldPerson = new Person {
+                Name = "A",
+                RG = "456",
+                Dispatcher = oldValue
+            };
+
+            Person newPerson = new Person {
+                Name = "A",
+                RG = "123",
+                Dispatcher = newValue
+            };
+
+            var diff = newPerson.Diff<Person>(oldPerson);
+
+            Assert.False(diff.Any(d => d.Item1 == "Dispatcher"));
+        }
+
+        [TheoryAttribute]
+        [InlineDataAttribute("", "")]
+        [InlineDataAttribute("New-down@test.com", "New-down@test.com")]
+        [InlineDataAttribute("farmácia", "farmacia")]
+        [InlineDataAttribute("carroça", "carroca")]
+        public void ShouldRemoveDiacritics(string input, string output)
+        {
+            var result = input.RemoveDiacritics();
+            Assert.Equal(result, output);
+        }
     }
 }
