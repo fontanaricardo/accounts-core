@@ -230,7 +230,8 @@
 
             if (results.status == 0)
             {
-                throw new InvalidOperationException("Erro ao gerar a sua certificação");
+                var exception = new InvalidOperationException("Erro ao gerar a sua certificação.");
+                exception.Data.Add("Response string", stringResponse);
             }
             else
             {

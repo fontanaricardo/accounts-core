@@ -80,7 +80,8 @@
   "buildOptions": {
     "emitEntryPoint": true,
     "preserveCompilationContext": true,
-    "warningsAsErrors": true
+    "warningsAsErrors": true,
+    "debugType": "portable"
   },
 
   "runtimeOptions": {

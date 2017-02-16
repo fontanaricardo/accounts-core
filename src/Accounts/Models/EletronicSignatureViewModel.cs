@@ -28,6 +28,57 @@
         [Display(Name = "Senha")]
         public string Password { get; set; }
 
+        /// <summary>
+        /// Registra as alterações dos dados de usuários no protocolo no SEI.
+        /// </summary>
+        /// <remarks>
+        /// Caso os objetos sejam idênticos, nenhuma ação é tomada.
+        /// </remarks>
+        /// <param name="seiProtocol">Número formatado do protocolo do SEI que irá receber o documento com as alterações.</param>
+        /// <param name="oldPerson">Objeto com os dados anteriores.</param>
+        /// <param name="newPerson">Objeto com os novos dados.</param>
+        /// <param name="appSettings">Objeto com as configurações do ambiente.</param>
+        public static void AddUserDataChange(string seiProtocol, Person oldPerson, Person newPerson, AppSettings appSettings)
+        {
+            string[] ignoredProperties = { "EletronicSignatureStatus" };
+            var diff = newPerson.Diff(oldObject: oldPerson, ignoredProperties: ignoredProperties);
+
+            if (diff.Count == 0)
+            {
+                return;
+            }
+
+            StringBuilder fileContent = new StringBuilder();
+
+            fileContent.AppendLine("Alteração nos dados do usuário externo");
+            fileContent.AppendLine("======================================");
+            fileContent.AppendLine(string.Empty);
+
+            diff.ForEach(t =>
+            {
+                var line = $"{t.Item1}: {t.Item2} => {t.Item3}";
+                fileContent.Append(line);
+            });
+
+            SendTextDocument(seiProtocol, "Alteração nos dados do usuário", fileContent.ToString(), appSettings);
+        }
+
+        public static void SendTextDocument(string seiProtocol, string title, string fileContent, AppSettings appSettings)
+        {
+            using (var formData = new System.Net.Http.MultipartFormDataContent())
+            {
+                byte[] toBytes = Encoding.GetEncoding(appSettings.SeiEncoding).GetBytes(fileContent);
+                var fileName = title.RemoveDiacritics().ToLowerInvariant().Replace(' ', '_');
+
+                formData.Add(new StringContent(seiProtocol), "procFormatado");
+                formData.Add(new StringContent(appSettings.Unidade), "idUnidade");
+                formData.Add(new ByteArrayContent(toBytes), "file", fileName + ".txt");
+                formData.Add(new StringContent(title), "descricao");
+                formData.Add(new StringContent(appSettings.Formulario), "idSerie");
+                var resp = ExtendableType.Post(appSettings.VirtualUrl + "/SeiDocumentos/Create", title, formData);
+            }
+        }
+
         public void ChangePassword(Person person, AppSettings appSettings)
         {
             person.ChangePasswordSei(Password, appSettings);
@@ -194,18 +245,7 @@
             fileContent.Append(person.ToString());
             fileContent.AppendLine("Telefones: ");
             person.Phones.ForEach(p => fileContent.AppendLine(p.Number));
-
-            using (var formData = new System.Net.Http.MultipartFormDataContent())
-            {
-                byte[] toBytes = Encoding.GetEncoding(appSettings.SeiEncoding).GetBytes(fileContent.ToString());
-
-                formData.Add(new StringContent(person.SeiProtocol), "procFormatado");
-                formData.Add(new StringContent(appSettings.Unidade), "idUnidade");
-                formData.Add(new ByteArrayContent(toBytes), "file", "DadosUsuario.txt");
-                formData.Add(new StringContent("Dados do usuário"), "descricao");
-                formData.Add(new StringContent(appSettings.Formulario), "idSerie");
-                var resp = ExtendableType.Post(appSettings.VirtualUrl + "/SeiDocumentos/Create", "Dados do usuário", formData);
-            }
+            SendTextDocument(person.SeiProtocol, "Dados do usuário", fileContent.ToString(), appSettings);
         }
     }
 }
