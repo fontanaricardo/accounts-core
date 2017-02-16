@@ -52,6 +52,8 @@ namespace Accounts.Controllers
                 return View(model);
             }
 
+            Person oldPerson = _dbContext.People.AsNoTracking().Single(p => p.CPF == User.Identity.Name);
+
             // Busca todos os dados do usuário para enviar novamente ao serviço do SEI
             Person person = _dbContext.People.Include(p => p.Address).Single(p => p.CPF == User.Identity.Name);
             person.Phones = _dbContext.Phones.Where(p => p.Document == person.CPF).ToList();
@@ -66,7 +68,7 @@ namespace Accounts.Controllers
 
             person.Name = model.Name;
             person.RG = model.RG;
-            person.CPF = model.CPF;
+            person.Dispatcher = model.Dispatcher;
 
             // Revoga a assinatura eletrônica do usuário
             person.ChangePasswordSei(model.Password, _appSettings.Value, true);
@@ -86,6 +88,18 @@ namespace Accounts.Controllers
                 if (person.SeiId != null)
                 {
                     person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+
+                    // Remove telefones e endereço pois, já foram enviados ao SEI, não foram alterados e não serão comparados
+                    oldPerson.Phones = null;
+                    person.Phones = null;
+                    oldPerson.Address = null;
+                    person.Address = null;
+
+                    EletronicSignatureViewModel.AddUserDataChange(
+                        person.SeiProtocol,
+                        oldPerson,
+                        person,
+                        _appSettings.Value);
                 }
             }
 

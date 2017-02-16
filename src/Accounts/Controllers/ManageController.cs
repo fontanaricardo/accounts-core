@@ -318,6 +318,7 @@
             }
 
             // Se possuir usuário no SEI deve atualizar o e-mail do SEI
+            var oldPerson = _dbContext.People.AsNoTracking().Single(p => p.CPF == User.Identity.Name);
             Person person = GetPerson();
             person.Email = model.Email;
 
@@ -326,6 +327,12 @@
                 if (person.SeiId != null)
                 {
                     person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+
+                    EletronicSignatureViewModel.AddUserDataChange(
+                        person.SeiProtocol,
+                        oldPerson,
+                        person,
+                        _appSettings.Value);
                 }
             }
             catch (ArgumentException ex)
