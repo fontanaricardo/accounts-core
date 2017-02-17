@@ -16,7 +16,7 @@ tests:
     tags:
         - docker-ci
     script:
-        - docker run --rm --env-file /opt/environments/ricardo.fontana/accounts-core.env -v $PWD:/app microsoft/dotnet:1.1.0-sdk-projectjson /app/test-unit.sh
+        - docker run --rm --env-file /opt/environments/pmj/accounts-core.env -v $PWD:/app microsoft/dotnet:1.1.0-sdk-projectjson /app/test-unit.sh
 
 build_image:
   stage: build
