@@ -80,6 +80,7 @@
             ViewBag.Decree = _appSettings.Value.Decree;
             ViewBag.Instruction = _appSettings.Value.Instruction;
             ViewBag.SignDocumentLink = _appSettings.Value.SignDocumentLink;
+            ViewBag.VirtualUrl = _appSettings.Value.VirtualUrl;
 
             return View(model);
         }

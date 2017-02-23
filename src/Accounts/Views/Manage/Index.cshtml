@@ -47,12 +47,8 @@
             @Html.ActionLink("Editar meus telefones de contato", "Index", "Phones")
         </p>
 
-        @*
-            TODO: Utilizar parâmetro como URL do virtual
-        *@
-
         <p>
-            <a href="http://virtual.pmjlle.joinville.sc.gov.br/Polis/Processo/Index">Meus processos </a>
+            <a href="@ViewBag.VirtualUrl/Polis/Processo/Index">Meus processos </a>
         </p>
 
         <br />
