@@ -235,6 +235,16 @@
             return View(model);
         }
 
+        /// <summary>
+        /// Action criada para efetuar logoff através do Polis.
+        /// </summary>
+        [HttpGet]
+        [ActionName("LogOff")]
+        public Task<IActionResult> LogOffHttpGet()
+        {
+            return LogOff();
+        }
+
         // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
