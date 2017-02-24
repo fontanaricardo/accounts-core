@@ -46,6 +46,8 @@
 
             services.AddSingleton<IConfiguration>(Configuration);
 
+            services.AddSingleton<ISeiService>(new SeiService(Configuration));
+
             string connection = string.Empty;
 
             if (_environment.IsDevelopment())
