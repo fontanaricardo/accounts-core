@@ -1,11 +1,13 @@
 ﻿namespace Accounts.Controllers
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Data;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -25,6 +27,7 @@
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
         private readonly IOptions<AppSettings> _appSettings;
+        private readonly ISeiService _seiService;
 
         public ManageController(
         UserManager<ApplicationUser> userManager,
@@ -33,7 +36,8 @@
         IEmailSender emailSender,
         ISmsSender smsSender,
         ILoggerFactory loggerFactory,
-        IOptions<AppSettings> appSettings)
+        IOptions<AppSettings> appSettings,
+        ISeiService seiService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -42,6 +46,7 @@
             _logger = loggerFactory.CreateLogger<ManageController>();
             _dbContext = dbContext;
             _appSettings = appSettings;
+            _seiService = seiService;
         }
 
         // GET: /Manage/Index
@@ -270,7 +275,7 @@
                         Password = model.NewPassword
                     };
 
-                    es.ChangePassword(person, _appSettings.Value);
+                    _seiService.ChangePasswordSei(person, es.Password);
                 }
 
                 return RedirectToAction("Index", new { Message = ManageMessageId.ChangePasswordSuccess });
@@ -280,7 +285,7 @@
             return View(model);
         }
 
-        // GET: /Manage/ChangePassword
+        // GET: /Manage/ChangeEmail
         public ActionResult ChangeEmail()
         {
             var user = GetCurrentUserAsync().Result;
@@ -326,13 +331,16 @@
             {
                 if (person.SeiId != null)
                 {
-                    person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+                    _seiService.CreateOrUpdateSeiUser(person, model.Password);
 
-                    EletronicSignatureViewModel.AddUserDataChange(
-                        person.SeiProtocol,
+                    var changeDocument = EletronicSignatureViewModel.UserDataChangeDocument(
                         oldPerson,
-                        person,
-                        _appSettings.Value);
+                        person);
+
+                    _seiService.AddTextDocument(
+                        protocol: person.SeiProtocol,
+                        title: "Alteração nos dados do usuário",
+                        content: changeDocument);
                 }
             }
             catch (ArgumentException ex)
@@ -351,7 +359,7 @@
                 _dbContext.SaveChanges();
 
                 await EmailConfirmation(user);
-                person.ChangePasswordSei(model.Password, _appSettings.Value, true);
+                _seiService.ChangePasswordSei(person, model.Password, true);
 
                 TempData["success"] = "Alteração efetuada com sucesso. Confirme o novo endereço de e-mail para se autenticar";
                 await _signInManager.SignOutAsync();
@@ -493,11 +501,35 @@
                 {
                     // Chamado 84925: Persiste o número do protocolo do SEI logo após a sua geração
                     _dbContext.People.Attach(person);
-                    model.CreateOrReopenProtocol(person, _appSettings.Value);
-                    _dbContext.SaveChanges();
 
-                    model.AddDocumentsAndUserData(person, _appSettings.Value);
-                    person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+                    if (string.IsNullOrEmpty(person.SeiProtocol))
+                    {
+                        _seiService.CreateProtocol(person);
+                    }
+                    else
+                    {
+                        _seiService.ReopenProtocol(person.SeiProtocol);
+                    }
+
+                    _dbContext.SaveChanges();
+                    var userData = model.UserDataDocument(person);
+                    _seiService.AddTextDocument(
+                        protocol: person.SeiProtocol,
+                        title: "Dados do usuário externo",
+                        content: userData);
+
+                    Dictionary<string, IFormFile> files = new Dictionary<string, IFormFile>()
+                    {
+                        { "Termo de responsabilidade", model.Term },
+                        { "Documento com foto", model.Document },
+                    };
+
+                    foreach (var file in files)
+                    {
+                        _seiService.AddDocument(person.SeiProtocol, file.Key, file.Value);
+                    }
+
+                    _seiService.CreateOrUpdateSeiUser(person, model.Password);
                     person.EletronicSignatureStatus = EletronicSignatureStatus.UnderApproval;
                     user.EletronicSignatureStatus = EletronicSignatureStatus.UnderApproval;
                     var updateResult = _userManager.UpdateAsync(user).Result;

@@ -27,6 +27,7 @@
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
         private readonly IOptions<AppSettings> _appSettings;
+        private readonly ISeiService _seiService;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -35,7 +36,8 @@
             IEmailSender emailSender,
             ISmsSender smsSender,
             ILoggerFactory loggerFactory,
-            IOptions<AppSettings> appSettings)
+            IOptions<AppSettings> appSettings,
+            ISeiService seiService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -44,6 +46,7 @@
             _logger = loggerFactory.CreateLogger<AccountController>();
             _dbContext = dbContext;
             _appSettings = appSettings;
+            _seiService = seiService;
         }
 
         [AllowAnonymous]
@@ -156,7 +159,7 @@
                     return View(model);
                 }
 
-                UpdateEletronicSignature(model, _appSettings.Value);
+                UpdateEletronicSignature(model);
             }
             else
             {
@@ -444,7 +447,7 @@
                     await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MinValue);
                 }
 
-                person.ChangePasswordSei(model.Password, _appSettings.Value, true);
+                _seiService.ChangePasswordSei(person, model.Password, true);
 
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
@@ -791,7 +794,7 @@
         }
 
         // TODO: Implementar método para pessoa jurídica
-        private void UpdateEletronicSignature(Models.LoginViewModel model, AppSettings appSettings)
+        private void UpdateEletronicSignature(Models.LoginViewModel model)
         {
             var person = _dbContext.People.SingleOrDefault(p => p.CPF == model.Username);
 
@@ -800,7 +803,8 @@
                 return;
             }
 
-            person.UpdateEletronicSignatureStatus(appSettings);
+            _seiService.UpdateEletronicSignatureStatus(person);
+
             var user = _userManager.FindByNameAsync(model.Username).Result;
             user.EletronicSignatureStatus = person.EletronicSignatureStatus;
             User.AddUpdateClaim("EletronicSignatureStatus", person.EletronicSignatureStatus.ToString());
