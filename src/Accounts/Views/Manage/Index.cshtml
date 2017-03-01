@@ -7,123 +7,50 @@
 <p class="text-success">@ViewBag.StatusMessage</p>
 
 <div class="col-md-4">
-    <section>
-
-        <h4>Altere as definições da sua conta</h4>
+    <div class="list-group">
         
-        <hr>
-
-        <p>
-            @if (Model.HasPassword)
-            {
-                @Html.ActionLink("Alterar senha", "ChangePassword")
-            }
-            else
-            {
-                @Html.ActionLink("Definir senha", "SetPassword")
-            }
-        </p>
-
-        <p>
-            @Html.ActionLink("Alterar email", "ChangeEmail")
-        </p>
-
-        <p>
-            @if (User.Identity.Name.Length > 11)
-            {
-                @Html.ActionLink("Editar meu cadastro", "Edit", "Companies")
-            }
-            else
-            {
-                @Html.ActionLink("Editar meu cadastro", "Edit", "People")
-            }
-        </p>
-
-        <p>
-            @Html.ActionLink("Editar meu endereço", "Edit", "Addresses")
-        </p>
-
-        <p>
-            @Html.ActionLink("Editar meus telefones de contato", "Index", "Phones")
-        </p>
-
-        @*
-            TODO: Utilizar parâmetro como URL do virtual
-        *@
-
-        <p>
-            <a href="http://virtual.pmjlle.joinville.sc.gov.br/Polis/Processo/Index">Meus processos </a>
-        </p>
-
-        <br />
-
-    </section>
-</div>
-
-<div class="col-md-4">
-    <section>
-
-        <h4>Certificação</h4>
-
-        <hr>
-
-        <p style="display: none;" id="certLink">
-            @Html.ActionLink("Certificação do usuário", "EletronicSignature", "Manage")
-        </p>
-        
-        <p style="display: none;" id="addDocLink">
-            @Html.ActionLink("Adicionar documento ao processo de certificação", "AddDocument", "Certification")
-        </p>
+        <span class="list-group-item active"><span class="fa fa-sign-in"></span> &nbsp; Serviços</span>
+        <a class="list-group-item" href="@ViewBag.VirtualUrl/Polis/Processo/Index">Meus processos SEMA</a>
+        <a class="list-group-item" style="display: none;" id="certLink" asp-action="EletronicSignature" asp-controller="Manage">Certificação do usuário</a>
+        <a class="list-group-item" style="display: none;" id="addDocLink" asp-action="AddDocument" asp-controller="Certification">Adicionar documento ao processo de certificação</a>
         
         @if (!string.IsNullOrWhiteSpace(Model.LinkSeiProtocol))
         {
-            <p>
-                <a target="_blank" href="@Model.LinkSeiProtocol">
-                    Consultar processo de certificação
-                </a>
-            </p>
+            <a class="list-group-item" target="_blank" href="@Model.LinkSeiProtocol">
+                Consultar processo de certificação
+            </a>
         }
 
-        <br />
-
-    </section>
+        <a class="list-group-item" target="_blank" href="@ViewBag.SignDocumentLink">
+            Assinatura eletrônica
+        </a>
+        
+    </div>
 </div>
 
 <div class="col-md-4">
-    <section>
-
-        <h4>Legislação</h4>
-
-        <hr>
-
-        <p>
-            <a target="_blank" href="@(ViewBag.Decree)">
-                Decreto municipal 27.082/2016
-            </a>
-        </p>
+    <div class="list-group">
         
-        <p>
-            <a target="_blank" href="@(ViewBag.Instruction)">
-                Instrução normativa SEI Nº 06/2016
-            </a>
-        </p>
+        <span class="list-group-item active"><span class="glyphicon glyphicon-cog"></span> &nbsp; Preferências da conta</span>
+        <a class="list-group-item" asp-action="ChangePassword">Alterar senha</a>
+        <a class="list-group-item" asp-action="ChangeEmail">Alterar email</a>
+        <a class="list-group-item" asp-action="Edit" asp-controller="People">Editar meu cadastro</a>
+        <a class="list-group-item" asp-action="Edit" asp-controller="Addresses">Editar meu endereço</a>
+        <a class="list-group-item" asp-action="Index" asp-controller="Phones">Editar meus telefones de contato</a>
 
-        <br />
-
-    </section>
+    </div>
 </div>
 
 <div class="col-md-4">
-    <section>
-
-        <h4>Assinatura eletrônica</h4>
-        <hr />
-
-        <p>
-            <a href="@ViewBag.SignDocumentLink">Assinatura eletrônica</a>
-        </p>
-
-        <br />
+    <div class="list-group">
         
-    </section>
+        <span class="list-group-item active"><span class="glyphicon glyphicon-cog"></span> &nbsp; Legislação</span>
+        <a class="list-group-item" target="_blank" href="@(ViewBag.Decree)">
+            Decreto municipal 27.082/2016
+        </a>
+        <a class="list-group-item" target="_blank" href="@(ViewBag.Instruction)">
+            Instrução normativa SEI Nº 06/2016
+        </a>
+
+    </div>
 </div>
