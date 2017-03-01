@@ -150,7 +150,7 @@ namespace Accounts.Services
 
             if (revokeSign)
             {
-                new KeyValuePair<string, string>("status", "P");
+                values.Add(new KeyValuePair<string, string>("status", "P"));
             }
 
             byte[] response = ExtendableType.Post(_configuration["UrlSei"] + "/pmj/cadastro_usuario_externo_senha.php", values);
