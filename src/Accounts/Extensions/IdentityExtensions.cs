@@ -1,8 +1,9 @@
 ﻿namespace Accounts.Extensions
 {
-    using System;
+    using System.Linq;
     using System.Security.Claims;
     using System.Security.Principal;
+    using Microsoft.AspNetCore.Identity;
     using Models;
 
     public static class IdentityExtensions
@@ -15,41 +16,30 @@
             return (claim != null) ? claim.Value : string.Empty;
         }
 
-        public static EletronicSignatureStatus GetEletronicSignatureStatus(this IIdentity identity)
+        /// <summary>
+        /// Delete all exiting claims with same type param and create a new one with param value.
+        /// </summary>
+        /// <remarks>
+        /// After call this method use RefreshSignInAsync in SignInManager to refresh the cookies.!--
+        ///
+        /// _userManager.AddOrUpdateClaim(user, "FullUserName", user.FullUserName);
+        /// await _signInManager.RefreshSignInAsync(user);
+        ///
+        /// </remarks>
+        /// <param name="userManager">Current user manager.</param>
+        /// <param name="user">Logged user.</param>
+        /// <param name="type">Claim type as string value.</param>
+        /// <param name="value">New claim values as string.</param>
+        public static void AddOrUpdateClaim(this UserManager<ApplicationUser> userManager, ApplicationUser user, string type, string value)
         {
-            EletronicSignatureStatus es = EletronicSignatureStatus.Unsolicited;
+            var oldClaims = userManager.GetClaimsAsync(user).Result.Where(c => c.Type == type).ToList();
 
-            var claim = ((ClaimsIdentity)identity).FindFirst("EletronicSignatureStatus");
-
-            if (claim != null)
+            if (oldClaims.Count > 0)
             {
-                // TODO: Fazer tratativa
-                Enum.TryParse(claim.Value, out es);
+                var removeResult = userManager.RemoveClaimsAsync(user, oldClaims).Result;
             }
 
-            return es;
-        }
-
-        public static void AddUpdateClaim(this IPrincipal currentPrincipal, string key, string value)
-        {
-            var identity = currentPrincipal.Identity as ClaimsIdentity;
-            if (identity == null)
-            {
-                return;
-            }
-
-            // check for existing claim and remove it
-            var existingClaim = identity.FindFirst(key);
-            if (existingClaim != null)
-            {
-                identity.RemoveClaim(existingClaim);
-            }
-
-            // add new claim
-            identity.AddClaim(new Claim(key, value));
-
-            // var authenticationManager = HttpContext.Current.GetOwinContext().Authentication;
-            // authenticationManager.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
+            var addResult = userManager.AddClaimAsync(user, new Claim(type, value)).Result;
         }
     }
 }
