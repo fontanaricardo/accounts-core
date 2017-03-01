@@ -7,7 +7,6 @@ namespace Accounts.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
     using Models;
     using Services;
 
@@ -16,13 +15,13 @@ namespace Accounts.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IOptions<AppSettings> _appSettings;
+        private readonly ISeiService _seiService;
 
-        public CertificationController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IOptions<AppSettings> appSettings)
+        public CertificationController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ISeiService seiService)
         {
             _dbContext = dbContext;
             _userManager = userManager;
-            _appSettings = appSettings;
+            _seiService = seiService;
         }
 
         public ActionResult AddDocument()
@@ -57,7 +56,7 @@ namespace Accounts.Controllers
             {
                 try
                 {
-                    model.AddDocumentsToProtocol(person, _appSettings.Value);
+                    _seiService.AddDocument(person.SeiProtocol, "Documento", model.Document);
                     TempData["success"] = "Documento adicionado com sucesso.";
                 }
                 catch (ArgumentException ex)
@@ -119,7 +118,7 @@ namespace Accounts.Controllers
 
                 if (person != null)
                 {
-                    person.UpdateEletronicSignatureStatus(_appSettings.Value);
+                    _seiService.UpdateEletronicSignatureStatus(person);
                     var user = _userManager.FindByNameAsync(document).Result;
 
                     if (user.EletronicSignatureStatus != person.EletronicSignatureStatus)

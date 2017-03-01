@@ -6,7 +6,6 @@ namespace Accounts.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
     using Models;
     using Services;
 
@@ -15,13 +14,13 @@ namespace Accounts.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IOptions<AppSettings> _appSettings;
+        private readonly ISeiService _seiService;
 
-        public AddressesController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IOptions<AppSettings> appSettings)
+        public AddressesController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ISeiService seiService)
         {
             _dbContext = dbContext;
             _userManager = userManager;
-            _appSettings = appSettings;
+            _seiService = seiService;
         }
 
         // GET: Addresses/Edit/5
@@ -81,7 +80,7 @@ namespace Accounts.Controllers
 
             if (person.SeiId != null)
             {
-                person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+                _seiService.CreateOrUpdateSeiUser(person, model.Password);
             }
 
             TempData["success"] = "Registro atualizado com sucesso";

@@ -19,13 +19,15 @@ namespace Accounts.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IOptions<AppSettings> _appSettings;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ISeiService _seiService;
 
-        public PeopleController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IOptions<AppSettings> appSettings, SignInManager<ApplicationUser> signInManager)
+        public PeopleController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IOptions<AppSettings> appSettings, SignInManager<ApplicationUser> signInManager, ISeiService seiService)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _appSettings = appSettings;
             _signInManager = signInManager;
+            _seiService = seiService;
         }
 
         // GET: People/Edit/5
@@ -75,7 +77,7 @@ namespace Accounts.Controllers
             person.Dispatcher = model.Dispatcher;
 
             // Revoga a assinatura eletrônica do usuário
-            person.ChangePasswordSei(model.Password, _appSettings.Value, true);
+            _seiService.ChangePasswordSei(person, model.Password, true);
 
             // Atualiza dados na tabela de usuário e no SEI
             user.FullUserName = model.Name;
@@ -94,7 +96,7 @@ namespace Accounts.Controllers
                 // Atualiza demais dados no SEI
                 if (person.SeiId != null)
                 {
-                    person.CreateOrUpdateSeiUser(model.Password, _appSettings.Value);
+                    _seiService.CreateOrUpdateSeiUser(person, model.Password);
 
                     // Remove telefones e endereço pois, já foram enviados ao SEI, não foram alterados e não serão comparados
                     oldPerson.Phones = null;
@@ -102,11 +104,14 @@ namespace Accounts.Controllers
                     oldPerson.Address = null;
                     person.Address = null;
 
-                    EletronicSignatureViewModel.AddUserDataChange(
-                        person.SeiProtocol,
+                    var changeDocument = EletronicSignatureViewModel.UserDataChangeDocument(
                         oldPerson,
-                        person,
-                        _appSettings.Value);
+                        person);
+
+                    _seiService.AddTextDocument(
+                        protocol: person.SeiProtocol,
+                        title: "Alteração nos dados do usuário",
+                        content: changeDocument);
                 }
             }
 
