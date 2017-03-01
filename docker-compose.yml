@@ -4,7 +4,7 @@
 version: '2'
 
 services:
-  accounts_core:
+  web:
     image: registry.pmjlle.joinville.sc.gov.br:5000/pmj/accounts-core:${CI_BUILD_REF}
     restart: "always"
     ports:
