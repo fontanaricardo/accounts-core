@@ -53,6 +53,7 @@
         {
             var content = new FormUrlEncodedContent(values);
             var result = httpClient.PostAsync(url, content).Result;
+            result.EnsureSuccessStatusCode();
             return result.Content.ReadAsByteArrayAsync().Result;
         }
 
@@ -64,6 +65,15 @@
             {
                 throw new FileLoadException("Erro ao enviar o arquivo " + fileName);
             }
+
+            return resp.Content.ReadAsByteArrayAsync().Result;
+        }
+
+        public static byte[] Post(string url, HttpContent data)
+        {
+            var resp = httpClient.PostAsync(url, data).Result;
+
+            resp.EnsureSuccessStatusCode();
 
             return resp.Content.ReadAsByteArrayAsync().Result;
         }
