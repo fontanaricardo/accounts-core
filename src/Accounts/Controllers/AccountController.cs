@@ -171,8 +171,8 @@
 
             if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
             {
-                await _userManager.AddClaimAsync(user, new Claim("FullUserName", user.FullUserName));
-                await _userManager.AddClaimAsync(user, new Claim("EletronicSignatureStatus", user.EletronicSignatureStatus.ToString()));
+                _userManager.AddOrUpdateClaim(user, "FullUserName", user.FullUserName);
+                await _signInManager.RefreshSignInAsync(user);
 
                 if (Request.Cookies.ContainsKey("UrlReferer"))
                 {
@@ -817,7 +817,6 @@
 
             var user = _userManager.FindByNameAsync(model.Username).Result;
             user.EletronicSignatureStatus = person.EletronicSignatureStatus;
-            User.AddUpdateClaim("EletronicSignatureStatus", person.EletronicSignatureStatus.ToString());
             var updateResult = _userManager.UpdateAsync(user).Result;
             _dbContext.SaveChanges();
         }

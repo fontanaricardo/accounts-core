@@ -1,11 +1,14 @@
 namespace Accounts.Controllers
 {
     using System.Linq;
+    using System.Threading.Tasks;
+    using Accounts.Extensions;
     using Data;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
     using Models;
     using Services;
 
@@ -14,12 +17,16 @@ namespace Accounts.Controllers
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IOptions<AppSettings> _appSettings;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ISeiService _seiService;
 
-        public PeopleController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ISeiService seiService)
+        public PeopleController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IOptions<AppSettings> appSettings, SignInManager<ApplicationUser> signInManager, ISeiService seiService)
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _appSettings = appSettings;
+            _signInManager = signInManager;
             _seiService = seiService;
         }
 
@@ -44,7 +51,7 @@ namespace Accounts.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(PersonViewModel model)
+        public async Task<IActionResult> Edit(PersonViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -74,9 +81,12 @@ namespace Accounts.Controllers
 
             // Atualiza dados na tabela de usuário e no SEI
             user.FullUserName = model.Name;
+            user.EletronicSignatureStatus = person.EletronicSignatureStatus;
+            var updateResult = await _userManager.UpdateAsync(user);
 
-            // TODO: Alterar o nome na Claim
-            var updateResult = _userManager.UpdateAsync(user).Result;
+            // Update cookie user name
+            _userManager.AddOrUpdateClaim(user, "FullUserName", user.FullUserName);
+            await _signInManager.RefreshSignInAsync(user);
 
             if (updateResult.Succeeded)
             {
